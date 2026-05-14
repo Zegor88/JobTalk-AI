@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BottomNav > renders correctly and matches snapshot 1`] = `
+<nav
+  aria-label="Main navigation"
+  class="bottom-nav"
+>
+  <button
+    aria-label="Inbox"
+    style="min-height: var(--touch-target); min-width: var(--touch-target);"
+    type="button"
+  >
+    ✉️
+  </button>
+</nav>
+`;
