@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-14T21:59:42+02:00
-last_updated: 2026-05-14T22:46:50+02:00
+last_updated: 2026-05-14T23:16:00+02:00
 project: JobTalk AI
 project_key: NOKEY
 tracking_system: file-system
@@ -44,7 +44,7 @@ story_location: "{project-root}/_bmad-output/implementation-artifacts"
 development_status:
   epic-1: in-progress
   1-1-project-initialization-ui-foundation: done
-  1-2-local-database-bff-sync-setup: backlog
+  1-2-local-database-bff-sync-setup: done
   1-3-unified-inbox-triage-ux: backlog
   epic-1-retrospective: optional
   epic-2: backlog

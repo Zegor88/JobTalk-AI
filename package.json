@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-router/node": "7.15.1",
     "@react-router/serve": "7.15.1",
+    "dexie": "^4.4.2",
+    "dexie-react-hooks": "^4.4.0",
     "isbot": "^5.1.36",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
@@ -26,6 +28,7 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
