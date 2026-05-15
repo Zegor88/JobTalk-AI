@@ -39,6 +39,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
   const isDraggingRef = useRef(false);
   const isPointerDownRef = useRef(false);
   const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [action, setAction] = useState<"archive" | "delete" | null>(null);
 
   // 40% of viewport width — threshold for triggering action
@@ -48,6 +49,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
     startXRef.current = e.clientX;
     isDraggingRef.current = false;
     isPointerDownRef.current = true;
+    setIsDragging(false);
     (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
   }
 
@@ -56,6 +58,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
     const dx = e.clientX - startXRef.current;
     if (Math.abs(dx) > 5) {
       isDraggingRef.current = true;
+      if (!isDragging) setIsDragging(true);
     }
     setTranslateX(dx);
     setAction(dx < 0 ? "archive" : dx > 0 ? "delete" : null);
@@ -63,9 +66,12 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
 
   function handlePointerUp() {
     isPointerDownRef.current = false;
+    setIsDragging(false);
     if (translateX < -THRESHOLD) {
+      setTranslateX(-window.innerWidth); // Animate completely off-screen
       onArchive(email.id);
     } else if (translateX > THRESHOLD) {
+      setTranslateX(window.innerWidth); // Animate completely off-screen
       onDelete(email.id);
     } else {
       setTranslateX(0); // Snap back
@@ -75,6 +81,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
 
   function handlePointerCancel() {
     isPointerDownRef.current = false;
+    setIsDragging(false);
     setTranslateX(0);
     setAction(null);
     isDraggingRef.current = false;
@@ -99,7 +106,10 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
       {/* Swipeable content */}
       <div
         className={styles.item}
-        style={{ transform: `translateX(${translateX}px)` }}
+        style={{ 
+          transform: `translateX(${translateX}px)`,
+          transition: isDragging ? "none" : undefined
+        }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

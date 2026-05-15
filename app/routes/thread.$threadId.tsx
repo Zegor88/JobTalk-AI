@@ -1,5 +1,5 @@
 // app/routes/thread.$threadId.tsx
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/models/db.client";
 
@@ -12,6 +12,7 @@ export function meta() {
 
 export default function ThreadView() {
   const { threadId } = useParams<{ threadId: string }>();
+  const navigate = useNavigate();
 
   // Zero network call — reads directly from Dexie (AC: 4)
   const emails = useLiveQuery(
@@ -24,6 +25,26 @@ export default function ThreadView() {
 
   return (
     <main style={{ padding: "var(--space-4)" }}>
+      {/* Navigation Header */}
+      <button 
+        onClick={() => navigate(-1)}
+        style={{
+          background: "none",
+          border: "none",
+          color: "var(--color-primary)",
+          cursor: "pointer",
+          padding: 0,
+          marginBottom: "var(--space-4)",
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-1)",
+          fontSize: "var(--text-sm)",
+          fontWeight: "var(--font-semibold)"
+        }}
+      >
+        ← Back to Inbox
+      </button>
+
       <h1 style={{ fontSize: "var(--text-xl)", marginBottom: "var(--space-4)" }}>Thread</h1>
       {!emails ? (
         <p style={{ color: "var(--color-text-secondary)" }}>Loading…</p>

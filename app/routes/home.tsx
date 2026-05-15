@@ -19,11 +19,14 @@ export function meta({}: Route.MetaArgs) {
 // the component reads state from Dexie via useLiveQuery, NOT from loader data.
 export async function clientLoader({}: Route.ClientLoaderArgs) {
   try {
-    const response = await fetch("/api/sync");
-    if (!response.ok) throw new Error(`Sync failed: ${response.status}`);
-    const { emails, threads } = await response.json();
-    await db.emails.bulkPut(emails);
-    await db.threads.bulkPut(threads);
+    const existing = await db.emails.count();
+    if (existing === 0) {
+      const response = await fetch("/api/sync");
+      if (!response.ok) throw new Error(`Sync failed: ${response.status}`);
+      const { emails, threads } = await response.json();
+      await db.emails.bulkPut(emails);
+      await db.threads.bulkPut(threads);
+    }
   } catch {
     // Offline or network error: swallow silently, fallback to Dexie cache
     console.warn("[JobTalk] Sync unavailable — using cached data");
