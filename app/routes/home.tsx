@@ -1,7 +1,11 @@
 // app/routes/home.tsx
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import type { Route } from "./+types/home";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/models/db.client";
+import { SwipeableEmailListItem } from "~/components/features/SwipeableEmailListItem";
+import { Snackbar } from "~/components/ui/Snackbar";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -30,9 +34,41 @@ export async function clientLoader({}: Route.ClientLoaderArgs) {
 // Required when using clientLoader without a server loader
 clientLoader.hydrate = true;
 
+type SnackbarState = {
+  emailId: string;
+  message: string;
+  action: "archive" | "delete";
+} | null;
+
 export default function Home() {
-  // Source of truth: Dexie.js — not loader return value
-  const emails = useLiveQuery(() => db?.emails.orderBy("date").reverse().toArray(), []);
+  const navigate = useNavigate();
+  const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+
+  // Source of truth: Dexie.js — filter excludes archived and deleted items (AC: 1, 2)
+  const emails = useLiveQuery(
+    () => db?.emails
+      .orderBy("date")
+      .reverse()
+      .filter(e => !e.archived && !e.deleted)
+      .toArray(),
+    []
+  );
+
+  async function handleArchive(id: string) {
+    await db.emails.update(id, { archived: true });
+    setSnackbar({ emailId: id, message: "Email archived", action: "archive" });
+  }
+
+  async function handleDelete(id: string) {
+    await db.emails.update(id, { deleted: true });
+    setSnackbar({ emailId: id, message: "Email deleted", action: "delete" });
+  }
+
+  async function handleUndo() {
+    if (!snackbar) return;
+    await db.emails.update(snackbar.emailId, { archived: false, deleted: false });
+    setSnackbar(null);
+  }
 
   return (
     <main style={{ padding: "var(--space-4)" }}>
@@ -40,27 +76,27 @@ export default function Home() {
       {!emails ? (
         <p style={{ color: "var(--color-text-secondary)" }}>Loading…</p>
       ) : emails.length === 0 ? (
-        <p style={{ color: "var(--color-text-secondary)" }}>No emails cached yet.</p>
+        <p style={{ color: "var(--color-text-secondary)" }}>Inbox zero! 🎉</p>
       ) : (
         <ul style={{ listStyle: "none" }}>
-          {emails.map((email) => (
-            <li
+          {emails.map(email => (
+            <SwipeableEmailListItem
               key={email.id}
-              style={{
-                padding: "var(--space-4)",
-                borderBottom: "1px solid var(--color-border)",
-                opacity: email.isRead ? 0.6 : 1,
-              }}
-            >
-              <p style={{ fontWeight: "var(--font-semibold)", fontSize: "var(--text-sm)" }}>
-                {email.subject}
-              </p>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-xs)" }}>
-                {email.snippet}
-              </p>
-            </li>
+              email={email}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              onClick={() => navigate(`/thread/${email.threadId}`)}
+            />
           ))}
         </ul>
+      )}
+
+      {snackbar && (
+        <Snackbar
+          message={snackbar.message}
+          onUndo={handleUndo}
+          onDismiss={() => setSnackbar(null)}
+        />
       )}
     </main>
   );

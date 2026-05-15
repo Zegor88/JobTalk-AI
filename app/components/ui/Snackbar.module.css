@@ -1,0 +1,47 @@
+/* app/components/ui/Snackbar.module.css */
+
+.snackbar {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--space-4));
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-text-primary);
+  color: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  z-index: 200;
+  min-height: var(--touch-target);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: slideUp 200ms ease-out;
+}
+
+.snackbar button {
+  background: none;
+  border: none;
+  color: var(--color-ai-accent);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  padding: 0;
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snackbar button:focus-visible {
+  outline: 2px solid var(--color-ai-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes slideUp {
+  from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+}

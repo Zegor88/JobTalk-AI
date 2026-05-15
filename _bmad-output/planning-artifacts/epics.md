@@ -73,6 +73,10 @@ User Outcome: User can open the app instantly, connect accounts, view a unified 
 User Outcome: User can instantly understand long threads via AI summaries and send quick responses using one-tap AI generated drafts.
 **FRs covered:** FR5, FR6, FR7
 
+### Epic 3: Auth & Provider Sync
+User Outcome: User can securely connect their real email accounts via OAuth/IMAP and sync their live inbox to the local application.
+**FRs covered:** FR1, FR2 (Backend implementation)
+
 ## Epic 1: PWA Shell & Email Foundation
 
 User Outcome: User can open the app instantly, connect accounts, view a unified inbox, and perform manual triage via mobile gestures even on slow connections.
@@ -165,3 +169,33 @@ So that I can reply instantly without typing.
 **And** the `LightweightComposer` overlay must slide up from the bottom with the draft pre-filled
 **And** the composer textarea must auto-focus and expand vertically as the user edits
 **And** tapping "Send" must trigger an optimistic UI update, collapse the composer, and return the user to the inbox.
+
+## Epic 3: Auth & Provider Sync
+
+User Outcome: User can securely connect their real email accounts via OAuth/IMAP and sync their live inbox to the local application.
+
+### Story 3.1: OAuth 2.1 & Secure Credential Storage
+
+As a user,
+I want to securely connect my Gmail and Office 365 accounts without entering my password,
+So that I can trust the app with my email access.
+
+**Acceptance Criteria:**
+
+**Given** the user is on the account connection screen
+**When** they select Google or Microsoft
+**Then** the app must initiate an OAuth 2.1 flow via the BFF
+**And** securely store the tokens on the server (BFF), returning only an HTTP-only secure cookie to the PWA.
+
+### Story 3.2: Unified Mail Sync Engine
+
+As a user,
+I want the app to fetch my latest emails from connected providers,
+So that my inbox is up to date.
+
+**Acceptance Criteria:**
+
+**Given** the user has authenticated accounts
+**When** the `/api/sync` endpoint is called
+**Then** the BFF must fetch emails from the upstream providers, normalize them to the JobTalk schema, and return them
+**And** the frontend must replace the mock sync logic with the real endpoint and seamlessly update Dexie.js.

@@ -45,6 +45,14 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
+  --transition-swipe: 200ms ease-out;
+
+  /* Triage action colors */
+  --color-archive: #16a34a;   /* green-600 — Archive swipe reveal */
+  /* --color-danger already defined as #DC2626 — reused for Delete */
+
+  /* Swipe gesture */
+  --swipe-action-width: 80px;
 
   /* Touch Targets — minimum 44x44px per WCAG 2.1 */
   --touch-target: 44px;

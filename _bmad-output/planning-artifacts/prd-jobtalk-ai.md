@@ -60,6 +60,6 @@ Users are overwhelmed by email fragmentation (multiple accounts) and cognitive l
 
 ## 8. Implementation Roadmap
 1. **Phase 1:** PWA Shell & Local-first storage setup.
-2. **Phase 2:** Auth & Provider Sync (Gmail, O365, IMAP).
-3. **Phase 3:** AI Integration (Summaries, Drafts, Priority).
+2. **Phase 2:** AI Integration (Summaries, Drafts, Priority) using Mock BFF.
+3. **Phase 3:** Auth & Provider Sync (Gmail, O365, IMAP) replacing Mock BFF.
 4. **Phase 4:** E2E Testing & Vercel Deployment.

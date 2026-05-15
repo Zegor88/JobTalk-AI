@@ -1,0 +1,116 @@
+/* app/components/features/SwipeableEmailListItem.module.css */
+
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Action background — renders BEHIND the swipeable item */
+.actionPanel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  transition: background-color var(--transition-base);
+}
+
+.actionPanel[data-action="archive"] { background-color: var(--color-archive); }
+.actionPanel[data-action="delete"]  { background-color: var(--color-danger); }
+
+/* Swipeable content layer */
+.item {
+  position: relative;
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  will-change: transform;
+  transition: transform var(--transition-swipe);
+  touch-action: pan-y; /* Allow vertical scroll; horizontal is our swipe */
+  min-height: var(--touch-target);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/* Sender avatar circle */
+.avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Email content */
+.content {
+  flex: 1;
+  min-width: 0; /* Prevents flex overflow */
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.subject {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subject[data-read="true"] {
+  font-weight: var(--font-normal);
+  opacity: 0.75;
+}
+
+.date {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.snippet {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: var(--space-1);
+}
+
+/* Priority score badge slot — filled by Story 2.1 */
+.prioritySlot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  /* priority badge slot — Story 2.1 injects content here */
+}
+
+/* SR-only utility — visually hidden but accessible */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
