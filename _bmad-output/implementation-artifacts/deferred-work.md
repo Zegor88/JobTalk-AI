@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of 2-2-thread-summarization-the-ask (2026-05-15)
+
+- No authentication on `/api/summarize` [app/routes/api.summarize.ts] — pre-existing pattern across all API routes; auth is a separate story
+- No input size limit on emails array — potential token overflow and large POST bodies [app/routes/api.summarize.ts] — rate limiting/input guards out of scope for MVP
+- Prompt injection via unescaped `subject`/`snippet` fields in AI prompt [app/services/ai.server.ts] — risk constrained by Zod output schema; security hardening story (also noted in 2-1 deferred)
+- No `loader` export on API routes — GET to `/api/summarize` returns unhandled error — pre-existing pattern (api.score.ts same)
+
 ## Deferred from: code review of 2-1-ai-priority-scoring (2026-05-15)
 
 - Prompt injection через subject/snippet без ограничения длины в `ai.server.ts` — вне скоупа Story 2.1, рассмотреть в Story 2.2+ или отдельном security story

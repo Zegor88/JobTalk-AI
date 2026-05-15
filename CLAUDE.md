@@ -69,5 +69,5 @@ Application source code will be created during Phase 4 — its location is deter
 
 - Target: mobile PWA, Vercel deployment (free tier)
 - Email providers: Gmail (OAuth 2.0), Office 365 (OAuth 2.0), IMAP (Yahoo, AOL)
-- AI features: summaries, draft replies, priority scoring — use Claude API (model: `claude-sonnet-4-6`)
+- AI features: summaries, draft replies, priority scoring — use Google Gemini API via `@ai-sdk/google` (model: `gemini-2.5-flash`)
 - No contacts, tasks, notes, or calendar features in scope

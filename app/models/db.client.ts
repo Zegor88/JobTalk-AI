@@ -8,6 +8,7 @@ export interface Email {
   threadId: string;
   subject: string;
   snippet: string;
+  body?: string;
   date: string;          // ISO 8601
   isRead: boolean;
   priorityScore: "high" | "low" | null;
