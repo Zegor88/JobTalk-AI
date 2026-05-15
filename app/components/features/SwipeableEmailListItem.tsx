@@ -1,6 +1,7 @@
 // app/components/features/SwipeableEmailListItem.tsx
 import { useRef, useState, type PointerEvent } from "react";
 import type { Email } from "~/models/db.client";
+import { PriorityBadge } from "~/components/ui/PriorityBadge";
 import styles from "./SwipeableEmailListItem.module.css";
 
 interface Props {
@@ -123,7 +124,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
 
           {/* Priority badge slot — Story 2.1 fills this */}
           <div className={styles.prioritySlot}>
-            {/* priority badge slot */}
+            <PriorityBadge score={email.priorityScore} />
           </div>
         </div>
 

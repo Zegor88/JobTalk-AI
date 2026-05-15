@@ -1,0 +1,27 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  background-color: var(--color-ai-accent); /* #8B5CF6 — Magic Purple — AI content ONLY */
+  color: #ffffff;
+  font-size: var(--text-xs);               /* 13px */
+  font-weight: var(--font-semibold);       /* 600 */
+  border-radius: 9999px;                   /* pill */
+  line-height: 1.4;
+  white-space: nowrap;
+  /* Micro-animation: fade in when Dexie update triggers re-render */
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* F4: Accessibility — respect OS reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    animation: none;
+  }
+}

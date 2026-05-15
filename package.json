@@ -10,8 +10,10 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.73",
     "@react-router/node": "7.15.1",
     "@react-router/serve": "7.15.1",
+    "ai": "^6.0.182",
     "dexie": "^4.4.2",
     "dexie-react-hooks": "^4.4.0",
     "isbot": "^5.1.36",

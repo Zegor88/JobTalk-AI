@@ -28,6 +28,48 @@ export async function clientLoader({}: Route.ClientLoaderArgs) {
     // Offline or network error: swallow silently, fallback to Dexie cache
     console.warn("[JobTalk] Sync unavailable — using cached data");
   }
+  // ── Score unscored emails via BFF (fire-and-forget — does not block loader) ──
+  try {
+    const unscored = await db.emails
+      .filter((e) => e.priorityScore === null)
+      .toArray();
+
+    if (unscored.length > 0) {
+      // Fire-and-forget: no await — clientLoader returns immediately,
+      // useLiveQuery re-renders badges as scores arrive asynchronously.
+      Promise.all(
+        unscored.map(async (email) => {
+          try {
+            // F2: 5 s timeout per request — prevents infinite hang on slow AI API
+            const res = await fetch("/api/score", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal: AbortSignal.timeout(5000),
+              body: JSON.stringify({
+                emailId: email.id,
+                subject: email.subject,
+                snippet: email.snippet,
+              }),
+            });
+            // F3: guard non-JSON bodies (e.g. 502 HTML error page)
+            if (!res.ok) return;
+            const { priority } = await res.json();
+            // Use email.id from closure — not server-returned emailId — avoids
+            // no-op update("", ...) when server fail-safe returns empty string.
+            await db.emails.update(email.id, { priorityScore: priority });
+          } catch {
+            // Per-email fail safe — one bad request never aborts the rest
+          }
+        })
+      ).catch(() => {
+        // Outer fail safe — Promise.all itself should never reject, but be safe
+        console.warn("[JobTalk] AI scoring pipeline error");
+      });
+    }
+  } catch {
+    console.warn("[JobTalk] AI scoring unavailable — emails shown without priority");
+  }
+
   return null; // No loader data — components use useLiveQuery
 }
 
