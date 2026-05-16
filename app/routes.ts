@@ -13,4 +13,5 @@ export default [
   route("/auth/microsoft", "routes/auth.microsoft.tsx"),
   route("/auth/callback", "routes/auth.callback.tsx"),
   route("/auth/logout", "routes/auth.logout.tsx"),
+  route("/manifest.webmanifest", "routes/manifest[.webmanifest].ts"),
 ] satisfies RouteConfig;

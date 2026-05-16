@@ -91,3 +91,16 @@
   font-size: var(--text-sm);
   text-decoration: underline;
 }
+
+.errorBanner {
+  width: 100%;
+  max-width: 320px;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  text-align: center;
+}

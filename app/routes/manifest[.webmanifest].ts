@@ -1,9 +1,6 @@
-import type { WebAppManifest } from '@remix-pwa/dev';
-import { json } from '@remix-run/node';
-
 export const loader = () => {
-  return json(
-    {
+  return new Response(
+    JSON.stringify({
       name: 'JobTalk AI',
       short_name: 'JobTalk',
       description: 'AI-powered email client for job seekers',
@@ -18,7 +15,7 @@ export const loader = () => {
           type: 'image/x-icon',
         },
       ],
-    } as WebAppManifest,
+    }),
     {
       headers: {
         'Cache-Control': 'public, max-age=600',

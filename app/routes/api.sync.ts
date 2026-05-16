@@ -1,17 +1,26 @@
-// app/routes/api.sync.ts
-import { generateMockEmails, generateMockThreads } from "~/services/mock.server";
+import { requireSession } from "~/services/session.server";
+import { fetchGmailEmails, fetchMicrosoftEmails } from "~/services/bff.server";
 import type { Route } from "./+types/api.sync";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const emails = generateMockEmails();
-  const threads = generateMockThreads();
+  const session = await requireSession(request); // throws redirect("/login") if session invalid
 
-  return new Response(JSON.stringify({ emails, threads }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      // Auth mock: HTTP-only cookie — never readable by client JS
-      "Set-Cookie": "auth_session=mock_token; HttpOnly; Path=/; SameSite=Strict",
-    },
-  });
+  try {
+    const payload =
+      session.provider === "google"
+        ? await fetchGmailEmails({ ...session, provider: "google" })
+        : await fetchMicrosoftEmails(session.accessToken);
+
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sync_failed";
+    console.error("[JobTalk] /api/sync error:", err);
+    return new Response(JSON.stringify({ error: message }), {
+      status: 502,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }

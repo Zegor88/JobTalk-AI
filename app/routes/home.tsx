@@ -16,28 +16,46 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireSession(request);
-  return null;
+  const session = await requireSession(request);
+  return { userEmail: session.email };
 }
 
 // clientLoader runs on the CLIENT after hydration.
 // It syncs remote data into Dexie, then returns nothing —
 // the component reads state from Dexie via useLiveQuery, NOT from loader data.
-export async function clientLoader({}: Route.ClientLoaderArgs) {
+export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
+  const { userEmail } = (await serverLoader()) as { userEmail: string };
+
+  // Wipe stale/mock data when the authenticated user changes or on first login.
+  const cachedUser = localStorage.getItem("jobtalk_user_email");
+  if (cachedUser !== userEmail) {
+    await db.emails.clear();
+    await db.threads.clear();
+    localStorage.setItem("jobtalk_user_email", userEmail);
+  }
+
   try {
     const existing = await db.emails
       .filter((e) => !e.archived && !e.deleted)
       .count();
     if (existing === 0) {
       const response = await fetch("/api/sync");
-      if (!response.ok) throw new Error(`Sync failed: ${response.status}`);
-      const { emails, threads } = await response.json();
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        console.error(`[JobTalk] Sync HTTP ${response.status}:`, body);
+        throw new Error(`Sync failed: ${response.status}`);
+      }
+      const payload = await response.json();
+      if (payload.error) {
+        console.error("[JobTalk] Sync error from server:", payload.error);
+        throw new Error(payload.error);
+      }
+      const { emails, threads } = payload;
       await db.emails.bulkPut(emails);
       await db.threads.bulkPut(threads);
     }
-  } catch {
-    // Offline or network error: swallow silently, fallback to Dexie cache
-    console.warn("[JobTalk] Sync unavailable — using cached data");
+  } catch (err) {
+    console.warn("[JobTalk] Sync unavailable — using cached data", err);
   }
   // ── Score unscored emails via BFF (fire-and-forget — does not block loader) ──
   try {
