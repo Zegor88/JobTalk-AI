@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 3-2-unified-mail-sync-engine (2026-05-16)
+
+- Non-empty cache prevents future mail sync [app/routes/home.tsx:28] — pre-existing `home.tsx` behavior explicitly marked "already implemented and must not be changed" in Story 3.2. Real freshness risk: once one visible email exists, `/api/sync` is skipped indefinitely. Consider a future sync freshness boundary such as `lastSyncedAt` plus merge rules that preserve local `archived`/`deleted` flags.
+
 ## Deferred from: code review of 2-2-thread-summarization-the-ask (2026-05-15)
 
 - No authentication on `/api/summarize` [app/routes/api.summarize.ts] — pre-existing pattern across all API routes; auth is a separate story
