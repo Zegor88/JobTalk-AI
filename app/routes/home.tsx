@@ -19,7 +19,9 @@ export function meta({}: Route.MetaArgs) {
 // the component reads state from Dexie via useLiveQuery, NOT from loader data.
 export async function clientLoader({}: Route.ClientLoaderArgs) {
   try {
-    const existing = await db.emails.count();
+    const existing = await db.emails
+      .filter((e) => !e.archived && !e.deleted)
+      .count();
     if (existing === 0) {
       const response = await fetch("/api/sync");
       if (!response.ok) throw new Error(`Sync failed: ${response.status}`);
