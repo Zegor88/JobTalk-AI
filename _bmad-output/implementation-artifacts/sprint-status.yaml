@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-14T21:59:42+02:00
-last_updated: 2026-05-15T22:16:00+02:00
+last_updated: 2026-05-16T10:32:00+02:00
 project: JobTalk AI
 project_key: NOKEY
 tracking_system: file-system
@@ -50,9 +50,9 @@ development_status:
   epic-2: in-progress
   2-1-ai-priority-scoring: done
   2-2-thread-summarization-the-ask: done
-  2-3-smart-replies-lightweight-composer: backlog
+  2-3-smart-replies-lightweight-composer: done
   epic-2-retrospective: optional
-  epic-3: backlog
-  3-1-oauth-secure-credential-storage: backlog
+  epic-3: in-progress
+  3-1-oauth-secure-credential-storage: done
   3-2-unified-mail-sync-engine: backlog
   epic-3-retrospective: optional

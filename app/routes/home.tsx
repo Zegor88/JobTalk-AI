@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/home";
+import { requireSession } from "~/services/session.server";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/models/db.client";
 import { SwipeableEmailListItem } from "~/components/features/SwipeableEmailListItem";
@@ -12,6 +13,11 @@ export function meta({}: Route.MetaArgs) {
     { title: "JobTalk AI — Inbox" },
     { name: "description", content: "AI-powered email client for job seekers" },
   ];
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireSession(request);
+  return null;
 }
 
 // clientLoader runs on the CLIENT after hydration.

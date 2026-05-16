@@ -1,0 +1,115 @@
+.overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-radius: 16px 16px 0 0;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(100%);
+  animation: composerSlideUp var(--transition-base) forwards;
+  z-index: 100;
+}
+
+.closing {
+  transform: translateY(0);
+  animation: composerSlideDown var(--transition-base) forwards;
+}
+
+@keyframes composerSlideUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes composerSlideDown {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+    transform: translateY(0);
+  }
+
+  .closing {
+    transform: translateY(100%);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.discardButton {
+  background: none;
+  border: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  font-family: var(--font-base);
+  min-height: var(--touch-target);
+}
+
+.discardButton:hover {
+  color: var(--color-text-primary);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-base);
+  line-height: var(--line-height-relaxed);
+  resize: none;
+  overflow-y: hidden;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.sendButton {
+  width: 100%;
+  min-height: var(--touch-target);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: 8px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  font-family: var(--font-base);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.sendButton:hover {
+  opacity: 0.9;
+}
+
+.sendButton:active {
+  opacity: 0.8;
+}

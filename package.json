@@ -16,6 +16,7 @@
     "ai": "^6.0.182",
     "dexie": "^4.4.2",
     "dexie-react-hooks": "^4.4.0",
+    "google-auth-library": "^10.6.2",
     "isbot": "^5.1.36",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
