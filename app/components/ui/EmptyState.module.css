@@ -1,0 +1,37 @@
+/* app/components/ui/EmptyState.module.css */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-6);
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.iconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.body {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  max-width: 240px;
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}

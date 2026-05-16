@@ -1,14 +1,34 @@
 // app/components/ui/BottomNav.tsx
-// RULES: Pure component — no local state, no useLiveQuery.
-// Styled via index.css tokens only. No hardcoded colors.
+import { NavLink } from "react-router";
+import { Icon } from "~/components/ui/Icon";
+import styles from "./BottomNav.module.css";
+
+const TABS = [
+  { to: "/",        label: "Inbox",    icon: "inbox"    },
+  { to: "/search",  label: "Search",   icon: "search"   },
+  { to: "/settings",label: "Settings", icon: "settings" },
+] as const;
 
 export function BottomNav() {
   return (
-    <nav className="bottom-nav" aria-label="Main navigation">
-      {/* Placeholder — Story 1.3 implements full tabs */}
-      <button type="button" aria-label="Inbox" style={{ minHeight: "var(--touch-target)", minWidth: "var(--touch-target)" }}>
-        ✉️
-      </button>
+    <nav className={styles.nav} aria-label="Main navigation">
+      {TABS.map(({ to, label, icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={to === "/"}
+          className={({ isActive }) =>
+            isActive ? `${styles.tab} ${styles["tab--active"]}` : styles.tab
+          }
+          aria-label={label}
+        >
+          <span className={styles.iconWrap}>
+            <span className={styles.activeIndicator} aria-hidden="true" />
+            <Icon name={icon} size={22} />
+          </span>
+          <span>{label}</span>
+        </NavLink>
+      ))}
     </nav>
   );
 }

@@ -1,3 +1,4 @@
+import { Icon } from "~/components/ui/Icon";
 import styles from "./AISummaryCard.module.css";
 
 interface Props {
@@ -31,7 +32,9 @@ export function AISummaryCard({ isLoading, summary, actionItems, error }: Props)
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <span className={styles.icon} aria-hidden="true">✨</span>
+        <span className={styles.icon} aria-hidden="true">
+          <Icon name="sparkles" size={16} />
+        </span>
         <span className={styles.title}>The Ask</span>
       </div>
       <p className={styles.summary}>{summary}</p>

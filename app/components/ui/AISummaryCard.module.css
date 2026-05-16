@@ -14,7 +14,8 @@
 }
 
 .icon {
-  font-size: var(--text-base);
+  display: flex;
+  align-items: center;
   color: var(--color-ai-accent);
 }
 

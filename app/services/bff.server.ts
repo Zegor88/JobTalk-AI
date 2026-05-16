@@ -92,6 +92,7 @@ export function normalizeGmailMessage(raw: GmailMessage): Email {
     priorityScore: null,
     archived: false,
     deleted: false,
+    starred: false,
   };
 }
 
@@ -107,6 +108,7 @@ export function normalizeMicrosoftMessage(raw: MicrosoftMessage): Email {
     priorityScore: null,
     archived: false,
     deleted: false,
+    starred: false,
   };
 }
 

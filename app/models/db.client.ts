@@ -12,8 +12,9 @@ export interface Email {
   date: string;          // ISO 8601
   isRead: boolean;
   priorityScore: "high" | "low" | null;
-  archived: boolean;     // ← NEW in v2
-  deleted: boolean;      // ← NEW in v2
+  archived: boolean;
+  deleted: boolean;
+  starred: boolean;      // ← NEW in v3
 }
 
 export interface Thread {
@@ -37,10 +38,18 @@ class JobTalkDB extends Dexie {
       emails: "id, threadId, subject, snippet, date, isRead, priorityScore, archived, deleted",
       threads: "id, subject, lastMessageDate",
     }).upgrade(tx => {
-      // Migrate existing rows — set safe defaults
       return tx.table("emails").toCollection().modify((email: Email) => {
         if (email.archived === undefined) email.archived = false;
         if (email.deleted === undefined) email.deleted = false;
+      });
+    });
+    // v3: adds starred field
+    this.version(3).stores({
+      emails: "id, threadId, subject, snippet, date, isRead, priorityScore, archived, deleted, starred",
+      threads: "id, subject, lastMessageDate",
+    }).upgrade(tx => {
+      return tx.table("emails").toCollection().modify((email: Email) => {
+        if (email.starred === undefined) email.starred = false;
       });
     });
   }

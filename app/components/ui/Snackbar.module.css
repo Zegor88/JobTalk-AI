@@ -2,7 +2,8 @@
 
 .snackbar {
   position: fixed;
-  bottom: calc(var(--nav-height) + var(--space-4));
+  /* Sit above FAB (56px) + its bottom offset (nav + space-4) + small gap */
+  bottom: calc(var(--nav-height) + var(--space-4) + 56px + var(--space-3));
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--color-text-primary);

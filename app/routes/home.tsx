@@ -7,6 +7,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/models/db.client";
 import { SwipeableEmailListItem } from "~/components/features/SwipeableEmailListItem";
 import { Snackbar } from "~/components/ui/Snackbar";
+import { TopAppBar } from "~/components/ui/TopAppBar";
+import { SkeletonEmailItem } from "~/components/ui/SkeletonEmailItem";
+import { EmptyState } from "~/components/ui/EmptyState";
+import styles from "./home.module.css";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,13 +24,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { userEmail: session.email };
 }
 
-// clientLoader runs on the CLIENT after hydration.
-// It syncs remote data into Dexie, then returns nothing —
-// the component reads state from Dexie via useLiveQuery, NOT from loader data.
 export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
   const { userEmail } = (await serverLoader()) as { userEmail: string };
 
-  // Wipe stale/mock data when the authenticated user changes or on first login.
   const cachedUser = localStorage.getItem("jobtalk_user_email");
   if (cachedUser !== userEmail) {
     await db.emails.clear();
@@ -57,19 +57,16 @@ export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
   } catch (err) {
     console.warn("[JobTalk] Sync unavailable — using cached data", err);
   }
-  // ── Score unscored emails via BFF (fire-and-forget — does not block loader) ──
+
   try {
     const unscored = await db.emails
       .filter((e) => e.priorityScore === null)
       .toArray();
 
     if (unscored.length > 0) {
-      // Fire-and-forget: no await — clientLoader returns immediately,
-      // useLiveQuery re-renders badges as scores arrive asynchronously.
       Promise.all(
         unscored.map(async (email) => {
           try {
-            // F2: 5 s timeout per request — prevents infinite hang on slow AI API
             const res = await fetch("/api/score", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -80,54 +77,61 @@ export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
                 snippet: email.snippet,
               }),
             });
-            // F3: guard non-JSON bodies (e.g. 502 HTML error page)
             if (!res.ok) return;
             const { priority } = await res.json();
-            // Use email.id from closure — not server-returned emailId — avoids
-            // no-op update("", ...) when server fail-safe returns empty string.
             await db.emails.update(email.id, { priorityScore: priority });
           } catch {
-            // Per-email fail safe — one bad request never aborts the rest
+            // per-email failsafe
           }
         })
       ).catch(() => {
-        // Outer fail safe — Promise.all itself should never reject, but be safe
         console.warn("[JobTalk] AI scoring pipeline error");
       });
     }
   } catch {
-    console.warn("[JobTalk] AI scoring unavailable — emails shown without priority");
+    console.warn("[JobTalk] AI scoring unavailable");
   }
 
-  return null; // No loader data — components use useLiveQuery
+  return { userEmail };
 }
 
-// Required when using clientLoader without a server loader
 clientLoader.hydrate = true;
 
 type SnackbarState = {
   emailId: string;
   message: string;
-  action: "archive" | "delete";
+  action: "star" | "delete";
 } | null;
 
-export default function Home() {
+function getUserInitial(email: string): string {
+  return email.charAt(0).toUpperCase();
+}
+
+export default function Home({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
 
-  // Source of truth: Dexie.js — filter excludes archived and deleted items (AC: 1, 2)
+  const userEmail = (loaderData as { userEmail?: string } | null)?.userEmail ?? "";
+
   const emails = useLiveQuery(
-    () => db?.emails
-      .orderBy("date")
-      .reverse()
-      .filter(e => !e.archived && !e.deleted)
-      .toArray(),
+    () =>
+      db?.emails
+        .orderBy("date")
+        .reverse()
+        .filter((e) => !e.archived && !e.deleted)
+        .toArray(),
     []
   );
 
-  async function handleArchive(id: string) {
-    await db.emails.update(id, { archived: true });
-    setSnackbar({ emailId: id, message: "Email archived", action: "archive" });
+  async function handleStar(id: string) {
+    const email = await db.emails.get(id);
+    const wasStarred = email?.starred ?? false;
+    await db.emails.update(id, { starred: !wasStarred });
+    setSnackbar({
+      emailId: id,
+      message: wasStarred ? "Removed from favourites" : "Added to favourites",
+      action: "star",
+    });
   }
 
   async function handleDelete(id: string) {
@@ -137,30 +141,51 @@ export default function Home() {
 
   async function handleUndo() {
     if (!snackbar) return;
-    await db.emails.update(snackbar.emailId, { archived: false, deleted: false });
+    if (snackbar.action === "delete") {
+      await db.emails.update(snackbar.emailId, { deleted: false });
+    } else if (snackbar.action === "star") {
+      // Toggle star back
+      const email = await db.emails.get(snackbar.emailId);
+      await db.emails.update(snackbar.emailId, { starred: !email?.starred });
+    }
     setSnackbar(null);
   }
 
   return (
-    <main style={{ padding: "var(--space-4)" }}>
-      <h1 style={{ fontSize: "var(--text-xl)", marginBottom: "var(--space-4)" }}>Inbox</h1>
-      {!emails ? (
-        <p style={{ color: "var(--color-text-secondary)" }}>Loading…</p>
-      ) : emails.length === 0 ? (
-        <p style={{ color: "var(--color-text-secondary)" }}>Inbox zero! 🎉</p>
-      ) : (
-        <ul style={{ listStyle: "none" }}>
-          {emails.map(email => (
-            <SwipeableEmailListItem
-              key={email.id}
-              email={email}
-              onArchive={handleArchive}
-              onDelete={handleDelete}
-              onClick={() => navigate(`/thread/${email.threadId}`)}
-            />
-          ))}
-        </ul>
-      )}
+    <>
+      <TopAppBar
+        title="Inbox"
+        userInitial={userEmail ? getUserInitial(userEmail) : undefined}
+      />
+
+      <main className={styles.page}>
+        {!emails ? (
+          // Loading state — shimmer skeletons
+          <ul className={styles.list} aria-busy="true" aria-label="Loading emails">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonEmailItem key={i} />
+            ))}
+          </ul>
+        ) : emails.length === 0 ? (
+          <EmptyState
+            icon="envelope-open"
+            title="Inbox zero!"
+            body="You're all caught up. New emails will appear here."
+          />
+        ) : (
+          <ul className={styles.list}>
+            {emails.map((email) => (
+              <SwipeableEmailListItem
+                key={email.id}
+                email={email}
+                onStar={handleStar}
+                onDelete={handleDelete}
+                onClick={() => navigate(`/thread/${email.threadId}`)}
+              />
+            ))}
+          </ul>
+        )}
+      </main>
 
       {snackbar && (
         <Snackbar
@@ -169,6 +194,6 @@ export default function Home() {
           onDismiss={() => setSnackbar(null)}
         />
       )}
-    </main>
+    </>
   );
 }

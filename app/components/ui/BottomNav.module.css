@@ -1,0 +1,78 @@
+/* app/components/ui/BottomNav.module.css */
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: stretch;
+  z-index: 100;
+  /* Safe area for devices with home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (min-width: 768px) {
+  .nav {
+    max-width: var(--max-width-app);
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    width: 100%;
+  }
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 10px;
+  font-family: var(--font-base);
+  font-weight: var(--font-medium);
+  letter-spacing: 0.02em;
+  transition: color var(--transition-fast);
+  min-height: var(--touch-target);
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab:hover {
+  color: var(--color-primary);
+}
+
+.tab--active {
+  color: var(--color-primary);
+}
+
+.iconWrap {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activeIndicator {
+  position: absolute;
+  inset: -6px -12px;
+  background-color: var(--color-primary-light);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.tab--active .activeIndicator {
+  opacity: 1;
+}

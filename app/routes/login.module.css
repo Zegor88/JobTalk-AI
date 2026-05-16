@@ -1,3 +1,5 @@
+/* app/routes/login.module.css */
+
 .page {
   display: flex;
   flex-direction: column;
@@ -8,24 +10,53 @@
   background: var(--color-canvas);
 }
 
+/* Brand block */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  box-shadow: var(--shadow-fab);
+  user-select: none;
+}
+
 .title {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 var(--space-2);
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   color: var(--color-text-secondary);
-  margin: 0 0 var(--space-8);
+  margin: 0;
   text-align: center;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
+  max-width: 220px;
+  line-height: var(--line-height-relaxed);
 }
 
+/* Provider buttons */
 .providerList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
   max-width: 320px;
 }
@@ -34,22 +65,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--touch-target);
-  border-radius: var(--radius-md, 8px);
+  gap: var(--space-3);
+  min-height: 48px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--text-base);
   font-weight: var(--font-medium);
   text-decoration: none;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .providerBtn:hover,
 .providerBtn:focus-visible {
-  background: var(--color-border);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
+.providerIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Connected state */
 .connectedState {
   display: flex;
   flex-direction: column;
@@ -59,45 +100,89 @@
   max-width: 320px;
 }
 
-.connectedText {
-  color: var(--color-text-primary);
-  text-align: center;
-  margin: 0;
-  font-size: var(--text-base);
+.connectedCard {
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.signOutBtn {
+.connectedAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-semibold);
+  flex-shrink: 0;
+}
+
+.connectedInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.connectedEmail {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.connectedProvider {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+  margin: 2px 0 0;
+}
+
+.inboxBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: var(--touch-target);
   width: 100%;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  background: transparent;
-  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
   font-size: var(--text-base);
-  cursor: pointer;
-  transition: background var(--transition-fast);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
 }
 
-.signOutBtn:hover,
-.signOutBtn:focus-visible {
-  background: var(--color-border);
+.inboxBtn:hover,
+.inboxBtn:focus-visible {
+  opacity: 0.9;
 }
 
-.backBtn {
+.signOutBtn {
+  background: none;
+  border: none;
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
+  cursor: pointer;
   text-decoration: underline;
+  font-family: var(--font-base);
 }
 
+/* Error banner */
 .errorBanner {
   width: 100%;
   max-width: 320px;
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-4);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--color-danger) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
   color: var(--color-danger);

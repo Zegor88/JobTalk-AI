@@ -1,9 +1,33 @@
 // app/root.tsx
-import { Links, Meta, Outlet, Scripts } from "react-router";
+import { Links, Meta, Outlet, Scripts, useLocation } from "react-router";
 import { BottomNav } from "~/components/ui/BottomNav";
-import "~/index.css"; // ONLY place global styles are imported
+import { FAB } from "~/components/ui/FAB";
+import "~/index.css";
+
+const AUTH_PREFIXES = ["/login", "/auth/"];
+const THREAD_PREFIXES = ["/thread/"];
+const FAB_PATHS = ["/", "/search"];
+
+function isAuth(pathname: string): boolean {
+  return AUTH_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
+function isThread(pathname: string): boolean {
+  return THREAD_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
+function getShellClass(auth: boolean, thread: boolean): string {
+  if (auth) return "app-shell app-shell--auth";
+  if (thread) return "app-shell app-shell--thread";
+  return "app-shell";
+}
 
 export default function App() {
+  const { pathname } = useLocation();
+  const auth = isAuth(pathname);
+  const thread = isThread(pathname);
+  const showNav = !auth && !thread;
+
   return (
     <html lang="en">
       <head>
@@ -14,9 +38,10 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <div className="app-shell">
+        <div className={getShellClass(auth, thread)}>
           <Outlet />
-          <BottomNav />
+          {showNav && <BottomNav />}
+          {showNav && FAB_PATHS.includes(pathname) && <FAB />}
         </div>
         <Scripts />
       </body>

@@ -1,0 +1,37 @@
+/* app/components/ui/FAB.module.css */
+
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--space-4));
+  right: var(--space-4);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-fab);
+  z-index: 80;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.36);
+}
+
+.fab:active {
+  transform: scale(0.96);
+}
+
+@media (min-width: 768px) {
+  .fab {
+    /* On desktop, align with the constrained app shell */
+    right: calc(50% - var(--max-width-app) / 2 + var(--space-4));
+  }
+}

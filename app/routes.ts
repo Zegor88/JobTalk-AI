@@ -2,8 +2,10 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
+  route("/search", "routes/search.tsx"),
+  route("/settings", "routes/settings.tsx"),
+  route("/thread/:threadId", "routes/thread.$threadId.tsx"),
   route("/api/sync", "routes/api.sync.ts"),
-  route("/thread/:threadId", "routes/thread.$threadId.tsx"),  // ← Story 1.3
   route("/api/score", "routes/api.score.ts"),
   route("/api/summarize", "routes/api.summarize.ts"),
   route("/api/draft", "routes/api.draft.ts"),

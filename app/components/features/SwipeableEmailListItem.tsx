@@ -2,21 +2,20 @@
 import { useRef, useState, type PointerEvent } from "react";
 import type { Email } from "~/models/db.client";
 import { PriorityBadge } from "~/components/ui/PriorityBadge";
+import { Icon } from "~/components/ui/Icon";
 import styles from "./SwipeableEmailListItem.module.css";
 
 interface Props {
   email: Email;
-  onArchive: (id: string) => void;
+  onStar: (id: string) => void;
   onDelete: (id: string) => void;
   onClick: () => void;
 }
 
-/** Derive a single uppercase initial from the email subject (stand-in for sender name) */
 function getInitial(subject: string): string {
   return subject.charAt(0).toUpperCase();
 }
 
-/** Format ISO date string to a human-readable relative label */
 function formatDate(isoDate: string): string {
   const date = new Date(isoDate);
   const now = new Date();
@@ -34,13 +33,13 @@ function formatDate(isoDate: string): string {
   }
 }
 
-export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: Props) {
+export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Props) {
   const startXRef = useRef(0);
   const isDraggingRef = useRef(false);
   const isPointerDownRef = useRef(false);
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [action, setAction] = useState<"archive" | "delete" | null>(null);
+  const [action, setAction] = useState<"star" | "delete" | null>(null);
 
   // 40% of viewport width — threshold for triggering action
   const THRESHOLD = typeof window !== "undefined" ? window.innerWidth * 0.4 : 150;
@@ -61,20 +60,21 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
       if (!isDragging) setIsDragging(true);
     }
     setTranslateX(dx);
-    setAction(dx < 0 ? "archive" : dx > 0 ? "delete" : null);
+    // Right swipe = Star, Left swipe = Delete
+    setAction(dx > 0 ? "star" : dx < 0 ? "delete" : null);
   }
 
   function handlePointerUp() {
     isPointerDownRef.current = false;
     setIsDragging(false);
-    if (translateX < -THRESHOLD) {
-      setTranslateX(-window.innerWidth); // Animate completely off-screen
-      onArchive(email.id);
-    } else if (translateX > THRESHOLD) {
-      setTranslateX(window.innerWidth); // Animate completely off-screen
+    if (translateX > THRESHOLD) {
+      setTranslateX(window.innerWidth);
+      onStar(email.id);
+    } else if (translateX < -THRESHOLD) {
+      setTranslateX(-window.innerWidth);
       onDelete(email.id);
     } else {
-      setTranslateX(0); // Snap back
+      setTranslateX(0);
       setAction(null);
     }
   }
@@ -88,7 +88,6 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
   }
 
   function handleClick() {
-    // Don't trigger click if user was swiping
     if (!isDraggingRef.current) {
       onClick();
     }
@@ -101,14 +100,28 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
         className={styles.actionPanel}
         data-action={action}
         aria-hidden="true"
-      />
+      >
+        {action === "star" && (
+          <span className={styles.actionLabel}>
+            <Icon name="sparkles" size={22} />
+            Favourite
+          </span>
+        )}
+        {action === "delete" && (
+          <span className={styles.actionLabel}>
+            <Icon name="trash" size={22} />
+            Delete
+          </span>
+        )}
+      </div>
 
       {/* Swipeable content */}
       <div
         className={styles.item}
-        style={{ 
+        data-starred={String(email.starred)}
+        style={{
           transform: `translateX(${translateX}px)`,
-          transition: isDragging ? "none" : undefined
+          transition: isDragging ? "none" : undefined,
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -132,20 +145,26 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick }: 
           </div>
           <p className={styles.snippet}>{email.snippet}</p>
 
-          {/* Priority badge slot — Story 2.1 fills this */}
-          <div className={styles.prioritySlot}>
-            <PriorityBadge score={email.priorityScore} />
+          <div className={styles.meta}>
+            <div className={styles.prioritySlot}>
+              <PriorityBadge score={email.priorityScore} />
+            </div>
+            {email.starred && (
+              <span className={styles.starIcon} aria-label="Starred">
+                <Icon name="sparkles" size={14} />
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Screen Reader: visually hidden action buttons (AC: 3) */}
+        {/* Screen Reader: visually hidden action buttons */}
         <button
           type="button"
           className={styles.srOnly}
-          aria-label="Archive"
-          onClick={e => { e.stopPropagation(); onArchive(email.id); }}
+          aria-label={email.starred ? "Remove from favourites" : "Add to favourites"}
+          onClick={e => { e.stopPropagation(); onStar(email.id); }}
         >
-          Archive
+          {email.starred ? "Remove from favourites" : "Add to favourites"}
         </button>
         <button
           type="button"
