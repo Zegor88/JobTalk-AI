@@ -1,7 +1,9 @@
 // app/root.tsx
+import { useState } from "react";
 import { Links, Meta, Outlet, Scripts, useLocation } from "react-router";
 import { BottomNav } from "~/components/ui/BottomNav";
 import { FAB } from "~/components/ui/FAB";
+import { ComposeModal } from "~/components/ui/ComposeModal";
 import "~/index.css";
 
 const AUTH_PREFIXES = ["/login", "/auth/"];
@@ -24,6 +26,7 @@ function getShellClass(auth: boolean, thread: boolean): string {
 
 export default function App() {
   const { pathname } = useLocation();
+  const [composeOpen, setComposeOpen] = useState(false);
   const auth = isAuth(pathname);
   const thread = isThread(pathname);
   const showNav = !auth && !thread;
@@ -41,7 +44,13 @@ export default function App() {
         <div className={getShellClass(auth, thread)}>
           <Outlet />
           {showNav && <BottomNav />}
-          {showNav && FAB_PATHS.includes(pathname) && <FAB />}
+          {showNav && FAB_PATHS.includes(pathname) && (
+            <FAB onClick={() => setComposeOpen(true)} />
+          )}
+          <ComposeModal
+            isOpen={composeOpen}
+            onClose={() => setComposeOpen(false)}
+          />
         </div>
         <Scripts />
       </body>

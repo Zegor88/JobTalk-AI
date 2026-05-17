@@ -57,6 +57,7 @@ describe("Dexie DB Schema", () => {
         priorityScore: null,
         archived: false,
         deleted: false,
+        starred: false,
       },
     ];
     await testDb.emails.bulkPut(mockEmails);
@@ -77,6 +78,7 @@ describe("Dexie DB Schema", () => {
       priorityScore: null,
       archived: false,
       deleted: false,
+      starred: false,
     };
     await testDb.emails.put(email);
     const result = await testDb.emails.get("e2");
@@ -87,9 +89,9 @@ describe("Dexie DB Schema", () => {
   // Task 1 — v2 Schema: filter excludes archived/deleted items (AC: 1, 2)
   it("v2: filter excludes archived and deleted emails", async () => {
     const emails: Email[] = [
-      { id: "e3", threadId: "t3", subject: "Visible", snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: false, deleted: false },
-      { id: "e4", threadId: "t3", subject: "Archived", snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: true,  deleted: false },
-      { id: "e5", threadId: "t3", subject: "Deleted",  snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: false, deleted: true  },
+      { id: "e3", threadId: "t3", subject: "Visible", snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: false, deleted: false, starred: false },
+      { id: "e4", threadId: "t3", subject: "Archived", snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: true,  deleted: false, starred: false },
+      { id: "e5", threadId: "t3", subject: "Deleted",  snippet: "s", date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: false, deleted: true,  starred: false },
     ];
     await testDb.emails.bulkPut(emails);
     const visible = await testDb.emails.filter(e => !e.archived && !e.deleted).toArray();
@@ -101,7 +103,7 @@ describe("Dexie DB Schema", () => {
   it("v2: can update archived/deleted for undo", async () => {
     const email: Email = {
       id: "e6", threadId: "t4", subject: "Undo Test", snippet: "s",
-      date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: true, deleted: false,
+      date: "2026-05-15T09:00:00Z", isRead: false, priorityScore: null, archived: true, deleted: false, starred: false,
     };
     await testDb.emails.put(email);
     await testDb.emails.update("e6", { archived: false });

@@ -212,16 +212,16 @@ describe("buildThreadsFromEmails", () => {
 
   it("creates one thread per unique threadId", () => {
     const emails = [
-      { id: "e1", threadId: "t1", subject: "S1", snippet: "", date: "2026-05-10T10:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false },
-      { id: "e2", threadId: "t2", subject: "S2", snippet: "", date: "2026-05-11T10:00:00Z", isRead: true, priorityScore: null as null, archived: false, deleted: false },
+      { id: "e1", threadId: "t1", subject: "S1", snippet: "", date: "2026-05-10T10:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false, starred: false },
+      { id: "e2", threadId: "t2", subject: "S2", snippet: "", date: "2026-05-11T10:00:00Z", isRead: true, priorityScore: null as null, archived: false, deleted: false, starred: false },
     ];
     expect(buildThreadsFromEmails(emails)).toHaveLength(2);
   });
 
   it("thread.lastMessageDate is the latest email date in the thread", () => {
     const emails = [
-      { id: "e1", threadId: "t1", subject: "First", snippet: "", date: "2026-05-10T08:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false },
-      { id: "e2", threadId: "t1", subject: "Second", snippet: "", date: "2026-05-12T15:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false },
+      { id: "e1", threadId: "t1", subject: "First", snippet: "", date: "2026-05-10T08:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false, starred: false },
+      { id: "e2", threadId: "t1", subject: "Second", snippet: "", date: "2026-05-12T15:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false, starred: false },
     ];
     const threads = buildThreadsFromEmails(emails);
     expect(threads).toHaveLength(1);
@@ -230,8 +230,8 @@ describe("buildThreadsFromEmails", () => {
 
   it("thread.subject comes from the email with the latest date", () => {
     const emails = [
-      { id: "e1", threadId: "t1", subject: "Old Subject", snippet: "", date: "2026-05-09T00:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false },
-      { id: "e2", threadId: "t1", subject: "New Subject", snippet: "", date: "2026-05-12T00:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false },
+      { id: "e1", threadId: "t1", subject: "Old Subject", snippet: "", date: "2026-05-09T00:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false, starred: false },
+      { id: "e2", threadId: "t1", subject: "New Subject", snippet: "", date: "2026-05-12T00:00:00Z", isRead: false, priorityScore: null as null, archived: false, deleted: false, starred: false },
     ];
     const threads = buildThreadsFromEmails(emails);
     expect(threads[0].subject).toBe("New Subject");

@@ -7,9 +7,10 @@ import styles from "./SwipeableEmailListItem.module.css";
 
 interface Props {
   email: Email;
-  onStar: (id: string) => void;
+  onArchive: (id: string) => void;
   onDelete: (id: string) => void;
   onClick: () => void;
+  threadCount?: number;
 }
 
 function getInitial(subject: string): string {
@@ -33,13 +34,14 @@ function formatDate(isoDate: string): string {
   }
 }
 
-export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Props) {
+export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick, threadCount }: Props) {
   const startXRef = useRef(0);
   const isDraggingRef = useRef(false);
   const isPointerDownRef = useRef(false);
+  const translateXRef = useRef(0); // tracks current value for use in pointerUp without stale closure
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [action, setAction] = useState<"star" | "delete" | null>(null);
+  const [action, setAction] = useState<"archive" | "delete" | null>(null);
 
   // 40% of viewport width — threshold for triggering action
   const THRESHOLD = typeof window !== "undefined" ? window.innerWidth * 0.4 : 150;
@@ -49,7 +51,7 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
     isDraggingRef.current = false;
     isPointerDownRef.current = true;
     setIsDragging(false);
-    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as HTMLDivElement).setPointerCapture?.(e.pointerId);
   }
 
   function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
@@ -59,22 +61,25 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
       isDraggingRef.current = true;
       if (!isDragging) setIsDragging(true);
     }
+    translateXRef.current = dx;
     setTranslateX(dx);
-    // Right swipe = Star, Left swipe = Delete
-    setAction(dx > 0 ? "star" : dx < 0 ? "delete" : null);
+    // Left swipe = Archive, Right swipe = Delete
+    setAction(dx < 0 ? "archive" : dx > 0 ? "delete" : null);
   }
 
   function handlePointerUp() {
     isPointerDownRef.current = false;
     setIsDragging(false);
-    if (translateX > THRESHOLD) {
-      setTranslateX(window.innerWidth);
-      onStar(email.id);
-    } else if (translateX < -THRESHOLD) {
+    const tx = translateXRef.current;
+    if (tx < -THRESHOLD) {
       setTranslateX(-window.innerWidth);
+      onArchive(email.id);
+    } else if (tx > THRESHOLD) {
+      setTranslateX(window.innerWidth);
       onDelete(email.id);
     } else {
       setTranslateX(0);
+      translateXRef.current = 0;
       setAction(null);
     }
   }
@@ -82,6 +87,7 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
   function handlePointerCancel() {
     isPointerDownRef.current = false;
     setIsDragging(false);
+    translateXRef.current = 0;
     setTranslateX(0);
     setAction(null);
     isDraggingRef.current = false;
@@ -101,10 +107,10 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
         data-action={action}
         aria-hidden="true"
       >
-        {action === "star" && (
+        {action === "archive" && (
           <span className={styles.actionLabel}>
-            <Icon name="sparkles" size={22} />
-            Favourite
+            <Icon name="archive-box" size={22} />
+            Archive
           </span>
         )}
         {action === "delete" && (
@@ -138,9 +144,16 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
         {/* Email content */}
         <div className={styles.content}>
           <div className={styles.header}>
-            <p className={styles.subject} data-read={String(email.isRead)}>
-              {email.subject}
-            </p>
+            <div className={styles.subjectRow}>
+              <p className={styles.subject} data-read={String(email.isRead)}>
+                {email.subject}
+              </p>
+              {(threadCount ?? 1) > 1 && (
+                <span className={styles.threadCount} aria-label={`${threadCount} messages`}>
+                  ({threadCount})
+                </span>
+              )}
+            </div>
             <span className={styles.date}>{formatDate(email.date)}</span>
           </div>
           <p className={styles.snippet}>{email.snippet}</p>
@@ -149,11 +162,6 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
             <div className={styles.prioritySlot}>
               <PriorityBadge score={email.priorityScore} />
             </div>
-            {email.starred && (
-              <span className={styles.starIcon} aria-label="Starred">
-                <Icon name="sparkles" size={14} />
-              </span>
-            )}
           </div>
         </div>
 
@@ -161,10 +169,10 @@ export function SwipeableEmailListItem({ email, onStar, onDelete, onClick }: Pro
         <button
           type="button"
           className={styles.srOnly}
-          aria-label={email.starred ? "Remove from favourites" : "Add to favourites"}
-          onClick={e => { e.stopPropagation(); onStar(email.id); }}
+          aria-label="Archive"
+          onClick={e => { e.stopPropagation(); onArchive(email.id); }}
         >
-          {email.starred ? "Remove from favourites" : "Add to favourites"}
+          Archive
         </button>
         <button
           type="button"

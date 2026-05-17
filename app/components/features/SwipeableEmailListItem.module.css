@@ -16,16 +16,16 @@
   transition: background-color var(--transition-base);
 }
 
-/* Swipe RIGHT → Star (left side of panel) */
-.actionPanel[data-action="star"] {
-  background-color: var(--color-star-swipe);
-  justify-content: flex-start;
+/* Swipe LEFT → Archive (right side reveal) */
+.actionPanel[data-action="archive"] {
+  background-color: var(--color-archive);
+  justify-content: flex-end;
 }
 
-/* Swipe LEFT → Delete (right side of panel) */
+/* Swipe RIGHT → Delete (left side reveal) */
 .actionPanel[data-action="delete"] {
   background-color: var(--color-danger);
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .actionLabel {
@@ -91,6 +91,13 @@
   margin-bottom: var(--space-1);
 }
 
+.subjectRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 .subject {
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
@@ -98,6 +105,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.threadCount {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
 }
 
 .subject[data-read="true"] {
@@ -132,13 +146,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-}
-
-.starIcon {
-  color: var(--color-star);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
 }
 
 /* SR-only utility — visually hidden but accessible */

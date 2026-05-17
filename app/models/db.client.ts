@@ -21,6 +21,7 @@ export interface Thread {
   id: string;
   subject: string;
   lastMessageDate: string;  // ISO 8601 string
+  suggestedReplies?: string[];
 }
 
 class JobTalkDB extends Dexie {

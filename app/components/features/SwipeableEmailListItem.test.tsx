@@ -1,4 +1,4 @@
-import { render, fireEvent, screen, cleanup } from "@testing-library/react";
+import { render, fireEvent, screen, cleanup, act } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { SwipeableEmailListItem } from "./SwipeableEmailListItem";
 import type { Email } from "~/models/db.client";
@@ -13,12 +13,14 @@ const mockEmail: Email = {
   priorityScore: null,
   archived: false,
   deleted: false,
+  starred: false,
 };
 
 describe("SwipeableEmailListItem", () => {
   afterEach(() => {
     cleanup();
   });
+
   it("renders email content correctly", () => {
     render(
       <SwipeableEmailListItem
@@ -76,5 +78,75 @@ describe("SwipeableEmailListItem", () => {
     const item = screen.getByRole("listitem");
     fireEvent.click(item);
     expect(onClick).toHaveBeenCalled();
+  });
+
+  it("left swipe beyond threshold calls onArchive", () => {
+    const onArchive = vi.fn();
+
+    render(
+      <SwipeableEmailListItem
+        email={mockEmail}
+        onArchive={onArchive}
+        onDelete={vi.fn()}
+        onClick={vi.fn()}
+      />
+    );
+
+    const item = screen.getByRole("listitem");
+    // dx = -500 → exceeds 40% of jsdom's window.innerWidth (1024 * 0.4 = 409.6)
+    act(() => { fireEvent.pointerDown(item, { clientX: 500 }); });
+    act(() => { fireEvent.pointerMove(item, { clientX: 0 }); });
+    act(() => { fireEvent.pointerUp(item); });
+
+    expect(onArchive).toHaveBeenCalledWith("e1");
+  });
+
+  it("right swipe beyond threshold calls onDelete", () => {
+    const onDelete = vi.fn();
+
+    render(
+      <SwipeableEmailListItem
+        email={mockEmail}
+        onArchive={vi.fn()}
+        onDelete={onDelete}
+        onClick={vi.fn()}
+      />
+    );
+
+    const item = screen.getByRole("listitem");
+    // dx = +500 → exceeds 40% of jsdom's window.innerWidth (1024 * 0.4 = 409.6)
+    act(() => { fireEvent.pointerDown(item, { clientX: 0 }); });
+    act(() => { fireEvent.pointerMove(item, { clientX: 500 }); });
+    act(() => { fireEvent.pointerUp(item); });
+
+    expect(onDelete).toHaveBeenCalledWith("e1");
+  });
+
+  it("renders thread count badge when threadCount > 1", () => {
+    render(
+      <SwipeableEmailListItem
+        email={mockEmail}
+        onArchive={vi.fn()}
+        onDelete={vi.fn()}
+        onClick={vi.fn()}
+        threadCount={3}
+      />
+    );
+
+    expect(screen.getByText("(3)")).toBeDefined();
+  });
+
+  it("does not render thread count badge when threadCount is 1", () => {
+    render(
+      <SwipeableEmailListItem
+        email={mockEmail}
+        onArchive={vi.fn()}
+        onDelete={vi.fn()}
+        onClick={vi.fn()}
+        threadCount={1}
+      />
+    );
+
+    expect(screen.queryByText("(1)")).toBeNull();
   });
 });

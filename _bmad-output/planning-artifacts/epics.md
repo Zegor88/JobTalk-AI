@@ -170,6 +170,68 @@ So that I can reply instantly without typing.
 **And** the composer textarea must auto-focus and expand vertically as the user edits
 **And** tapping "Send" must trigger an optimistic UI update, collapse the composer, and return the user to the inbox.
 
+## Epic 4: UX Completeness & Polish
+
+User Outcome: All core email actions (archive, compose, reply) are fully wired up and visible; the inbox shows thread context at a glance; AI chip suggestions are contextual.
+
+**FRs covered:** FR2 (partial), FR3 (Compose, Archive, Reply completeness)
+
+### Story 4.1: UX Completeness — Swipe, Compose, Reply, Thread Count & Smart Chips
+
+As a user,
+I want all core triage actions to work correctly and intuitively,
+So that I can efficiently process my inbox without dead-end buttons or missing actions.
+
+**Acceptance Criteria:**
+
+**AC1 — Swipe directions match spec:**
+**Given** the user swipes left ≥40% on an email list item
+**Then** it must archive the email (`archived: true`), show a green background with Archive icon, and show an Undo snackbar
+
+**Given** the user swipes right ≥40%
+**Then** it must delete the email (`deleted: true`), show a red background with Delete icon, and show an Undo snackbar
+
+**Given** the `onStar` prop no longer exists on `SwipeableEmailListItem`
+**Then** it must be replaced with `onArchive` in the component, `home.tsx`, and `search.tsx`
+
+**AC2 — Thread email count badge:**
+**Given** an email in the inbox list belongs to a thread with more than 1 message (same `threadId`)
+**When** the inbox list renders
+**Then** a count badge (e.g., `(3)`) must appear next to the subject in `SwipeableEmailListItem`
+
+**Given** the thread has only 1 message
+**Then** no badge is shown
+
+**AC3 — Manual Reply button in thread view:**
+**Given** the user is viewing an email thread
+**When** they tap the "Reply" button (rendered below the AI summary / chip row)
+**Then** the `LightweightComposer` must open with an empty draft string
+
+**Given** the user taps Send
+**Then** the composer closes and user navigates to inbox
+
+**AC4 — FAB opens compose overlay:**
+**Given** the user taps the FAB (✏️) on Inbox or Search
+**Then** a `ComposeModal` overlay slides up with To, Subject, and Body fields
+
+**Given** the user taps Send or Discard in the compose overlay
+**Then** the overlay closes (send is simulated for MVP — no real API call required)
+
+**AC5 — Dynamic Smart Reply Chips:**
+**Given** `/api/summarize` returns a response
+**Then** it must include `suggestedReplies: string[]` with 2–3 contextual chip labels
+
+**Given** the thread view receives `suggestedReplies` in the summary
+**Then** the chip row must use those labels instead of the hardcoded `SMART_REPLY_CHIPS` constant
+
+**Given** `suggestedReplies` is missing or empty (error/cached summary without the field)
+**Then** fall back to the existing hardcoded chips
+
+**AC6 — Archive from thread view:**
+**Given** the user is in a thread
+**When** they tap the Archive button in the `TopAppBar` actions slot
+**Then** all emails with matching `threadId` must be set to `archived: true` and user navigated back to inbox
+
 ## Epic 3: Auth & Provider Sync
 
 User Outcome: User can securely connect their real email accounts via OAuth/IMAP and sync their live inbox to the local application.

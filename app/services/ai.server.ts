@@ -9,6 +9,7 @@ const PrioritySchema = z.object({
 const SummarizationSchema = z.object({
   summary: z.string(),
   actionItems: z.array(z.string()),
+  suggestedReplies: z.array(z.string()).min(2).max(3),
 });
 
 const DraftSchema = z.object({
@@ -66,7 +67,7 @@ Respond with only a JSON object matching the schema.`,
  */
 export async function summarizeThread(
   emails: { subject: string; snippet: string; body?: string }[]
-): Promise<{ summary: string; actionItems: string[] }> {
+): Promise<{ summary: string; actionItems: string[]; suggestedReplies: string[] }> {
   const emailText = emails
     .map((e, i) => `Email ${i + 1}:\nSubject: ${e.subject}\n${e.body ?? e.snippet}`)
     .join("\n\n");
@@ -78,6 +79,8 @@ export async function summarizeThread(
 Analyze the following email thread and provide:
 1. A 1-2 sentence summary ("The Ask") — what is the core ask or topic of this thread?
 2. Concise action items the user needs to take
+3. 2-3 short reply chip labels (max 5 words each) as "suggestedReplies" array.
+Examples: ["Yes, I'll be there", "Sorry, can't make it", "Let me check and reply"].
 
 ${emailText}
 

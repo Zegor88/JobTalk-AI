@@ -14,6 +14,7 @@ describe("api.summarize route action", () => {
     vi.mocked(summarizeThread).mockResolvedValueOnce({
       summary: "The recruiter wants to schedule an interview.",
       actionItems: ["Reply with availability"],
+      suggestedReplies: ["Share availability", "Ask for details"],
     });
 
     const request = new Request("http://localhost/api/summarize", {
@@ -30,6 +31,7 @@ describe("api.summarize route action", () => {
     const data = await response.json();
     expect(data.summary).toBe("The recruiter wants to schedule an interview.");
     expect(data.actionItems).toEqual(["Reply with availability"]);
+    expect(data.suggestedReplies).toEqual(["Share availability", "Ask for details"]);
     expect(data.isError).toBe(false);
   });
 

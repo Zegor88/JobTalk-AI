@@ -7,6 +7,7 @@ import { AISummaryCard } from "~/components/ui/AISummaryCard";
 import { SmartReplyChip } from "~/components/ui/SmartReplyChip";
 import { LightweightComposer } from "~/components/ui/LightweightComposer";
 import { TopAppBar } from "~/components/ui/TopAppBar";
+import { Icon } from "~/components/ui/Icon";
 import styles from "./thread.module.css";
 
 export function meta() {
@@ -19,6 +20,7 @@ export function meta() {
 interface SummarizeResult {
   summary: string;
   actionItems: string[];
+  suggestedReplies?: string[];
   isError?: boolean;
 }
 
@@ -70,6 +72,7 @@ export default function ThreadView() {
 
   const cachedSummary = (thread as Record<string, unknown> | undefined)?.summary as string | undefined;
   const cachedActionItems = (thread as Record<string, unknown> | undefined)?.actionItems as string[] | undefined;
+  const cachedSuggestedReplies = (thread as Record<string, unknown> | undefined)?.suggestedReplies as string[] | undefined;
   const hasCachedSummary = !!cachedSummary;
 
   // Top bar title — first email's subject or fallback
@@ -98,9 +101,9 @@ export default function ThreadView() {
 
   useEffect(() => {
     if (summarizeFetcher.data && !summarizeFetcher.data.isError && threadId) {
-      const { summary, actionItems } = summarizeFetcher.data;
+      const { summary, actionItems, suggestedReplies } = summarizeFetcher.data;
       db.threads
-        .update(threadId, { summary, actionItems } as Parameters<typeof db.threads.update>[1])
+        .update(threadId, { summary, actionItems, suggestedReplies } as Parameters<typeof db.threads.update>[1])
         .catch((err) => console.error("[DB] cache summary failed:", err));
     }
   }, [summarizeFetcher.data, threadId]);
@@ -118,7 +121,7 @@ export default function ThreadView() {
   const draftError = draftFetcher.data?.isError ? draftFetcher.data.draft : undefined;
 
   const displaySummary: SummarizeResult | null = hasCachedSummary
-    ? { summary: cachedSummary!, actionItems: cachedActionItems ?? [] }
+    ? { summary: cachedSummary!, actionItems: cachedActionItems ?? [], suggestedReplies: cachedSuggestedReplies }
     : summarizeFetcher.data && !summarizeFetcher.data.isError
     ? summarizeFetcher.data
     : null;
@@ -129,6 +132,11 @@ export default function ThreadView() {
       : undefined;
 
   const showSummaryCard = isLoadingSummary || !!displaySummary || !!fetcherError;
+
+  // Dynamic chips: use AI-generated suggestions if available, fall back to hardcoded
+  const chips = displaySummary?.suggestedReplies?.length
+    ? displaySummary.suggestedReplies
+    : SMART_REPLY_CHIPS;
 
   function handleChipTap(label: string) {
     if (!emails?.length || isDraftLoading) return;
@@ -168,9 +176,28 @@ export default function ThreadView() {
     closeComposer(false);
   }
 
+  async function handleArchiveThread() {
+    if (!emails?.length || !threadId) return;
+    await Promise.all(emails.map((e) => db.emails.update(e.id, { archived: true })));
+    navigate("/");
+  }
+
   return (
     <>
-      <TopAppBar title={threadTitle} showBack />
+      <TopAppBar
+        title={threadTitle}
+        showBack
+        actions={
+          <button
+            type="button"
+            className={styles.archiveBtn}
+            onClick={handleArchiveThread}
+            aria-label="Archive thread"
+          >
+            <Icon name="archive-box" size={22} />
+          </button>
+        }
+      />
 
       <main className={styles.page}>
         {showSummaryCard && (
@@ -184,7 +211,7 @@ export default function ThreadView() {
 
         {displaySummary && emails?.length ? (
           <div className={styles.chipsRow}>
-            {SMART_REPLY_CHIPS.map((label) => (
+            {chips.map((label) => (
               <SmartReplyChip
                 key={label}
                 label={label}
@@ -198,6 +225,20 @@ export default function ThreadView() {
 
         {draftError && (
           <p className={styles.draftError}>{draftError}</p>
+        )}
+
+        {emails && emails.length > 0 && (
+          <div className={styles.replyRow}>
+            <button
+              type="button"
+              className={styles.replyBtn}
+              onClick={() => setComposerOpen(true)}
+              aria-label="Reply to thread"
+            >
+              <Icon name="pencil-square" size={18} />
+              Reply
+            </button>
+          </div>
         )}
 
         {!emails ? (

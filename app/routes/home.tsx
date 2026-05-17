@@ -100,7 +100,7 @@ clientLoader.hydrate = true;
 type SnackbarState = {
   emailId: string;
   message: string;
-  action: "star" | "delete";
+  action: "archive" | "delete";
 } | null;
 
 function getUserInitial(email: string): string {
@@ -123,15 +123,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     []
   );
 
-  async function handleStar(id: string) {
-    const email = await db.emails.get(id);
-    const wasStarred = email?.starred ?? false;
-    await db.emails.update(id, { starred: !wasStarred });
-    setSnackbar({
-      emailId: id,
-      message: wasStarred ? "Removed from favourites" : "Added to favourites",
-      action: "star",
-    });
+  const threadCounts = useLiveQuery(
+    () =>
+      db?.emails.toArray().then((all) =>
+        all.reduce((acc, e) => {
+          acc[e.threadId] = (acc[e.threadId] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      ),
+    []
+  );
+
+  async function handleArchive(id: string) {
+    await db.emails.update(id, { archived: true });
+    setSnackbar({ emailId: id, message: "Email archived", action: "archive" });
   }
 
   async function handleDelete(id: string) {
@@ -143,10 +148,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     if (!snackbar) return;
     if (snackbar.action === "delete") {
       await db.emails.update(snackbar.emailId, { deleted: false });
-    } else if (snackbar.action === "star") {
-      // Toggle star back
-      const email = await db.emails.get(snackbar.emailId);
-      await db.emails.update(snackbar.emailId, { starred: !email?.starred });
+    } else if (snackbar.action === "archive") {
+      await db.emails.update(snackbar.emailId, { archived: false });
     }
     setSnackbar(null);
   }
@@ -178,9 +181,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <SwipeableEmailListItem
                 key={email.id}
                 email={email}
-                onStar={handleStar}
+                onArchive={handleArchive}
                 onDelete={handleDelete}
                 onClick={() => navigate(`/thread/${email.threadId}`)}
+                threadCount={threadCounts?.[email.threadId] ?? 1}
               />
             ))}
           </ul>

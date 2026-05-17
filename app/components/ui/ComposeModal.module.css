@@ -1,0 +1,118 @@
+/* app/components/ui/ComposeModal.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  z-index: 300;
+  animation: slideUp 250ms ease-out;
+}
+
+.overlay.closing {
+  animation: slideDown 250ms ease-in forwards;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.discardBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--space-1);
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-4);
+  gap: 0;
+  overflow-y: auto;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: transparent;
+  font-family: inherit;
+}
+
+.body {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: transparent;
+  font-family: inherit;
+  padding: var(--space-3) 0;
+  min-height: 200px;
+}
+
+.footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sendBtn {
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  min-height: var(--touch-target);
+}

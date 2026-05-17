@@ -51,6 +51,7 @@ describe("summarizeThread", () => {
       object: {
         summary: "The recruiter is requesting a technical interview this week.",
         actionItems: ["Reply to confirm availability", "Prepare coding questions"],
+        suggestedReplies: ["Share availability", "Ask for details"],
       },
     } as any);
 
@@ -63,6 +64,7 @@ describe("summarizeThread", () => {
       "Reply to confirm availability",
       "Prepare coding questions",
     ]);
+    expect(result.suggestedReplies).toEqual(["Share availability", "Ask for details"]);
   });
 
   it("throws on AI error — caller (api.summarize.ts) handles fallback", async () => {
@@ -75,17 +77,26 @@ describe("summarizeThread", () => {
 
   it("handles empty emails array without crashing", async () => {
     vi.mocked(generateObject).mockResolvedValueOnce({
-      object: { summary: "No content.", actionItems: [] },
+      object: {
+        summary: "No content.",
+        actionItems: [],
+        suggestedReplies: ["Follow up", "No reply needed"],
+      },
     } as any);
 
     const result = await summarizeThread([]);
     expect(result.summary).toBe("No content.");
     expect(result.actionItems).toEqual([]);
+    expect(result.suggestedReplies).toEqual(["Follow up", "No reply needed"]);
   });
 
   it("uses body over snippet when body is provided", async () => {
     vi.mocked(generateObject).mockResolvedValueOnce({
-      object: { summary: "Full body used.", actionItems: [] },
+      object: {
+        summary: "Full body used.",
+        actionItems: [],
+        suggestedReplies: ["Reply now", "Follow up later"],
+      },
     } as any);
 
     await summarizeThread([
