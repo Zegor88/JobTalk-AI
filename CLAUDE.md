@@ -12,60 +12,53 @@ Communication language with **Egor**: Russian. All generated documents: English.
 
 All planning work flows through four phases in order:
 
-| Phase               | Skills                                                                                     | Key outputs                                       |
+| Phase               | Activities                                                                                 | Key outputs                                       |
 | ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------- |
 | 1 – Analysis       | Market Research, Domain Research, Technical Research, Product Brief / PRFAQ, Brainstorming | Research docs, product brief                      |
 | 2 – Planning       | Create PRD → Validate PRD → Edit PRD → Create UX                                        | PRD, UX design                                    |
 | 3 – Solutioning    | Create Architecture → Create Epics & Stories → Check Implementation Readiness            | Architecture doc, epics/stories, readiness report |
 | 4 – Implementation | Sprint Planning → Sprint Status → Create Story → Dev Story → Code Review               | Sprint plan, story files, code                    |
 
-Invoke each phase skill via `/skill-name` (e.g. `/bmad-create-prd`). Use `/bmad-help` if unsure which skill to run next.
+## Team Roles
 
-## Agent Team
-
-| Skill                      | Name    | Role                                        |
-| -------------------------- | ------- | ------------------------------------------- |
-| `bmad-agent-analyst`     | Mary    | Business Analyst — research & requirements |
-| `bmad-agent-pm`          | John    | Product Manager — PRD & user value         |
-| `bmad-agent-ux-designer` | Sally   | UX Designer — screens & flows              |
-| `bmad-agent-architect`   | Winston | System Architect — tech decisions          |
-| `bmad-agent-dev`         | Amelia  | Senior Engineer — story implementation     |
-| `bmad-agent-tech-writer` | Paige   | Tech Writer — documentation                |
+| Role                                        |
+| ------------------------------------------- |
+| Business Analyst — research & requirements |
+| Product Manager — PRD & user value         |
+| UX Designer — screens & flows              |
+| System Architect — tech decisions          |
+| Senior Engineer — story implementation     |
+| Tech Writer — documentation                |
 
 ## Directory Layout
 
 ```
-_bmad/                        BMAD framework (installer-managed, treat as read-only)
-  config.toml                 Project-level config (project name, output paths)
-  config.user.toml            Personal config (user name, communication language)
-  custom/                     Override configs — safe to edit
-_bmad-output/
+_output/
   planning-artifacts/         PRDs, architecture docs, UX designs, epics/stories
   implementation-artifacts/   Sprint plans, story files
 docs/                         Project knowledge base (research, decisions, guides)
+app/                          React Router v7 application source
+public/                       Static assets and PWA manifest
 ```
-
-Application source code will be created during Phase 4 — its location is determined by the architecture doc produced in Phase 3.
 
 ## Output Conventions
 
-- Planning artifacts → `_bmad-output/planning-artifacts/`
-- Implementation artifacts → `_bmad-output/implementation-artifacts/`
+- Planning artifacts → `_output/planning-artifacts/`
+- Implementation artifacts → `_output/implementation-artifacts/`
 - Project knowledge docs → `docs/`
 - All documents are written in **English**; conversation with Egor is in **Russian**
 
 ## Key Workflow Commands
 
 ```
-/bmad-help                    Identify the right next skill
-/bmad-sprint-status           Check sprint progress at any time
-/bmad-quick-dev               Fast intent → code path (bypasses full planning pipeline)
-/bmad-correct-course          Handle major scope or direction changes mid-sprint
-/bmad-code-review             Adversarial review after Dev Story completes
-/bmad-check-implementation-readiness   Gate before starting Phase 4
+npm run dev       Start dev server (port 5173)
+npm run build     Production build
+npm run start     Serve production build
+npm run typecheck Run TypeScript checks
+npm test          Run Vitest test suite
 ```
 
-## Tech Constraints (to be validated in Phase 3)
+## Tech Constraints
 
 - Target: mobile PWA, Vercel deployment (free tier)
 - Email providers: Gmail (OAuth 2.0), Office 365 (OAuth 2.0), IMAP (Yahoo, AOL)

@@ -1,0 +1,25 @@
+generated: 2026-05-14T21:59:42+02:00
+last_updated: 2026-05-16T23:54:00+02:00
+project: JobTalk AI
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_output/implementation-artifacts"
+
+development_status:
+  epic-1: done
+  1-1-project-initialization-ui-foundation: done
+  1-2-local-database-bff-sync-setup: done
+  1-3-unified-inbox-triage-ux: done
+  epic-1-retrospective: done
+  epic-2: in-progress
+  2-1-ai-priority-scoring: done
+  2-2-thread-summarization-the-ask: done
+  2-3-smart-replies-lightweight-composer: done
+  epic-2-retrospective: optional
+  epic-3: in-progress
+  3-1-oauth-secure-credential-storage: done
+  3-2-unified-mail-sync-engine: done
+  epic-3-retrospective: optional
+  epic-4: in-progress
+  4-1-ux-completeness: done
+  epic-4-retrospective: optional
