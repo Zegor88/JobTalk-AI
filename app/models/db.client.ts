@@ -9,13 +9,14 @@ export interface Email {
   subject: string;
   snippet: string;
   body?: string;
+  bodyHtml?: string;     // ← NEW in v5: sanitized HTML for rich rendering
   from?: string;
   date: string;          // ISO 8601
   isRead: boolean;
   priorityScore: "high" | "low" | null;
   archived: boolean;
   deleted: boolean;
-  starred: boolean;      // ← NEW in v3
+  starred: boolean;
 }
 
 export interface Thread {
@@ -62,6 +63,11 @@ class JobTalkDB extends Dexie {
       return tx.table("emails").toCollection().modify((email: Email) => {
         if (email.from === undefined) email.from = "";
       });
+    });
+    // v5: adds bodyHtml (sanitized HTML body) — existing rows keep it undefined and fall back to plain text.
+    this.version(5).stores({
+      emails: "id, threadId, subject, snippet, date, isRead, priorityScore, archived, deleted, starred",
+      threads: "id, subject, lastMessageDate",
     });
   }
 }

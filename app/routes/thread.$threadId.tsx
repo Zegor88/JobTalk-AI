@@ -239,8 +239,8 @@ export default function ThreadView() {
           <p className={styles.empty}>No messages found.</p>
         ) : (
           emails.map((email) => (
-            <div key={email.id} className={styles.messageCard}>
-              <div className={styles.messageHeader}>
+            <article key={email.id} className={styles.messageCard}>
+              <header className={styles.messageHeader}>
                 <div className={styles.senderAvatar} aria-hidden="true">
                   {getInitial(email.from)}
                 </div>
@@ -248,11 +248,18 @@ export default function ThreadView() {
                   <p className={styles.senderName}>{getDisplayName(email.from)}</p>
                   <p className={styles.messageDate}>{formatDate(email.date)}</p>
                 </div>
-              </div>
-              <p className={styles.messageBody}>
-                {email.body ?? email.snippet}
-              </p>
-            </div>
+              </header>
+              {email.bodyHtml ? (
+                <div
+                  className={styles.messageBodyHtml}
+                  /* HTML is sanitized server-side via sanitize-html with a strict allowlist
+                     (no scripts/styles/forms, anchors forced to target=_blank rel=noopener). */
+                  dangerouslySetInnerHTML={{ __html: email.bodyHtml }}
+                />
+              ) : (
+                <p className={styles.messageBody}>{email.body ?? email.snippet}</p>
+              )}
+            </article>
           ))
         )}
 

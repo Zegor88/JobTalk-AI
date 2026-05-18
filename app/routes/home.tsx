@@ -14,7 +14,7 @@ import styles from "./home.module.css";
 
 const SWIPE_HINT_KEY = "jobtalk_swipe_hinted";
 // Increment when the sync payload schema changes (e.g. new fields added to Email)
-const SYNC_SCHEMA_VERSION = "5"; // bumped: email body now fetched from API
+const SYNC_SCHEMA_VERSION = "6"; // bumped: bodyHtml added; HTML is now sanitized server-side
 const SYNC_SCHEMA_KEY = "jobtalk_sync_schema_v";
 
 export function meta({}: Route.MetaArgs) {

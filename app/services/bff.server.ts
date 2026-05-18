@@ -1,6 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import type { OAuthCredential } from "~/services/credential.server";
 import type { Email, Thread } from "~/models/db.client";
+import { renderEmailBody } from "~/services/email-renderer.server";
 
 export type SyncPayload = { emails: Email[]; threads: Thread[] };
 export type GoogleSyncSession = OAuthCredential & { sessionId: string; provider: "google" };
@@ -54,19 +55,27 @@ function getGoogleClient(session: GoogleSyncSession): OAuth2Client {
   return client;
 }
 
-/** Recursively search MIME parts for the first text/plain body and decode it. */
-function extractGmailBody(part: GmailPart | undefined): string {
-  if (!part) return "";
-  if (part.mimeType === "text/plain" && part.body?.data) {
-    return Buffer.from(part.body.data, "base64url").toString("utf-8");
-  }
-  if (part.parts) {
-    for (const sub of part.parts) {
-      const text = extractGmailBody(sub);
-      if (text) return text;
+/** Recursively walk MIME parts and collect the first text/plain and text/html bodies. */
+function extractGmailBodies(part: GmailPart | undefined): { plain: string; html: string } {
+  const result = { plain: "", html: "" };
+  if (!part) return result;
+
+  function walk(p: GmailPart | undefined): void {
+    if (!p) return;
+    if (p.mimeType === "text/plain" && p.body?.data && !result.plain) {
+      result.plain = Buffer.from(p.body.data, "base64url").toString("utf-8");
+    } else if (p.mimeType === "text/html" && p.body?.data && !result.html) {
+      result.html = Buffer.from(p.body.data, "base64url").toString("utf-8");
+    }
+    if (p.parts) {
+      for (const sub of p.parts) {
+        if (result.plain && result.html) return;
+        walk(sub);
+      }
     }
   }
-  return "";
+  walk(part);
+  return result;
 }
 
 /** Decode HTML entities in plain text (e.g. Gmail snippets contain &amp; &#39; etc.) */
@@ -79,20 +88,6 @@ function decodeEntities(text: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
-}
-
-/** Strip HTML tags and decode common entities for plain-text display. */
-function stripHtml(html: string): string {
-  return decodeEntities(
-    html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/p>/gi, "\n\n")
-      .replace(/<[^>]+>/g, "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim()
-  );
 }
 
 function parseGmailDate(dateHeader: string, internalDate?: string): string {
@@ -126,14 +121,16 @@ export function normalizeGmailMessage(raw: GmailMessage): Email {
   const date = parseGmailDate(getHeader("Date"), raw.internalDate);
   const isRead = !(raw.labelIds ?? []).includes("UNREAD");
   const from = getHeader("From");
-  const body = extractGmailBody(raw.payload as GmailPart | undefined) || undefined;
+  const { plain, html } = extractGmailBodies(raw.payload as GmailPart | undefined);
+  const rendered = renderEmailBody({ plain, html });
 
   return {
     id: raw.id,
     threadId: raw.threadId,
     subject,
     snippet: decodeEntities(raw.snippet ?? ""),
-    body,
+    body: rendered.body || undefined,
+    bodyHtml: rendered.bodyHtml || undefined,
     date,
     isRead,
     from: from || undefined,
@@ -153,16 +150,21 @@ export function normalizeMicrosoftMessage(raw: MicrosoftMessage): Email {
     : senderAddress;
 
   const rawBody = raw.body?.content ?? "";
-  const body = rawBody
-    ? raw.body?.contentType === "html" ? stripHtml(rawBody) : rawBody.trim()
-    : undefined;
+  const isHtml = raw.body?.contentType === "html";
+  const rendered = rawBody
+    ? renderEmailBody({
+        plain: isHtml ? undefined : rawBody,
+        html: isHtml ? rawBody : undefined,
+      })
+    : { body: "", bodyHtml: "" };
 
   return {
     id: raw.id,
     threadId: raw.conversationId,
     subject: raw.subject || "(no subject)",
     snippet: raw.bodyPreview ?? "",
-    body,
+    body: rendered.body || undefined,
+    bodyHtml: rendered.bodyHtml || undefined,
     date: raw.receivedDateTime,
     isRead: raw.isRead,
     from: from || undefined,
