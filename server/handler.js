@@ -2,7 +2,6 @@ import { createRequestHandler } from "react-router";
 import * as build from "../build/server/index.js";
 
 const mode = process.env.NODE_ENV ?? "production";
-process.env.NODE_ENV = mode;
 
 const handleRequest = createRequestHandler(build, mode);
 

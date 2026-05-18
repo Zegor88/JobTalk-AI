@@ -6,3 +6,6 @@
 /.react-router/
 /build/
 .vercel
+
+# Vercel function bundle (built from server/handler.js)
+/api/index.js
