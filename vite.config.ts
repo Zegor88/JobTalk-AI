@@ -24,6 +24,29 @@ export default defineConfig(({ mode }) => {
         "~": "/app",
       },
     },
+    ssr: {
+      // Bundle these packages directly into the server bundle.
+      // Vercel's @vercel/react-router filePathMap misses production
+      // conditional exports (e.g. dexie/import-wrapper-prod.mjs) and
+      // dynamic requires inside google-auth-library / AI SDK packages.
+      noExternal: [
+        "dexie",
+        "dexie-react-hooks",
+        "google-auth-library",
+        "gaxios",
+        "gcp-metadata",
+        "google-logging-utils",
+        "@ai-sdk/google",
+        "@ai-sdk/provider",
+        "@ai-sdk/provider-utils",
+        "@ai-sdk/gateway",
+        "ai",
+        "isbot",
+        "zod",
+        "eventsource-parser",
+        "@opentelemetry/api",
+      ],
+    },
     test: {
       environment: "jsdom",
     },
