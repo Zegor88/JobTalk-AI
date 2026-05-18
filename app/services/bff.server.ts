@@ -1,5 +1,5 @@
 import { OAuth2Client } from "google-auth-library";
-import { storeOAuthCredential, type OAuthCredential } from "~/services/credential.server";
+import type { OAuthCredential } from "~/services/credential.server";
 import type { Email, Thread } from "~/models/db.client";
 
 export type SyncPayload = { emails: Email[]; threads: Thread[] };
@@ -43,21 +43,13 @@ function getGoogleClient(session: GoogleSyncSession): OAuth2Client {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     redirectUri: process.env.GOOGLE_REDIRECT_URI!,
   });
-  // setCredentials enables auto token refresh when client.fetch() detects expiry
+  // setCredentials enables auto token refresh when client.fetch() detects expiry.
+  // Refreshed tokens are short-lived for the current request only — the session
+  // cookie holds the persistent refresh_token, which the OAuth2 client will
+  // re-use to mint a new access_token on the next request if needed.
   client.setCredentials({
     access_token: session.accessToken,
     refresh_token: session.refreshToken,
-  });
-  client.on("tokens", (tokens) => {
-    if (!tokens.access_token && !tokens.refresh_token && !tokens.expiry_date) return;
-    storeOAuthCredential(session.sessionId, {
-      userId: session.userId,
-      email: session.email,
-      provider: "google",
-      accessToken: tokens.access_token ?? session.accessToken,
-      refreshToken: tokens.refresh_token ?? session.refreshToken,
-      expiresAt: tokens.expiry_date ?? session.expiresAt,
-    });
   });
   return client;
 }

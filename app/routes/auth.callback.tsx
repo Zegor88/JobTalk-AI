@@ -1,7 +1,7 @@
 import { redirect } from "react-router";
 import { exchangeGoogleCode, exchangeMicrosoftCode } from "~/services/oauth.server";
 import { getSession, commitSession } from "~/services/session.server";
-import { createSessionId, storeOAuthCredential, type OAuthProvider } from "~/services/credential.server";
+import { createSessionId, type OAuthProvider } from "~/services/credential.server";
 
 function isOAuthProvider(provider: string | null): provider is OAuthProvider {
   return provider === "google" || provider === "microsoft";
@@ -32,14 +32,6 @@ export async function loader({ request }: { request: Request }) {
         : await exchangeMicrosoftCode(code, codeVerifier);
 
     const sessionId = createSessionId();
-    storeOAuthCredential(sessionId, {
-      userId: tokens.email,
-      email: tokens.email,
-      provider: tokens.provider,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt,
-    });
 
     session.unset("oauthState");
     session.unset("oauthProvider");
@@ -49,6 +41,8 @@ export async function loader({ request }: { request: Request }) {
     session.set("email", tokens.email);
     session.set("provider", tokens.provider);
     session.set("expiresAt", tokens.expiresAt);
+    session.set("accessToken", tokens.accessToken);
+    session.set("refreshToken", tokens.refreshToken);
 
     return redirect("/", {
       headers: { "Set-Cookie": await commitSession(session) },

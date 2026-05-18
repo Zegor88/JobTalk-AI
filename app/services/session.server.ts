@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, redirect } from "react-router";
-import { getOAuthCredential, type OAuthProvider } from "./credential.server";
+import type { OAuthProvider } from "./credential.server";
 
 export interface SessionData {
   sessionId: string;
@@ -17,6 +17,8 @@ export interface SessionCookieData {
   email?: string;
   provider?: OAuthProvider;
   expiresAt?: number;
+  accessToken?: string;
+  refreshToken?: string;
   oauthState?: string;
   oauthProvider?: OAuthProvider;
   codeVerifier?: string;
@@ -44,16 +46,16 @@ export async function requireSession(request: Request): Promise<SessionData> {
   const email = session.get("email");
   const provider = session.get("provider");
   const expiresAt = session.get("expiresAt");
-  if (!sessionId || !userId || !email || !provider || typeof expiresAt !== "number") {
-    throw redirect("/login");
-  }
-
-  const credential = getOAuthCredential(sessionId);
+  const accessToken = session.get("accessToken");
+  const refreshToken = session.get("refreshToken");
   if (
-    !credential ||
-    credential.userId !== userId ||
-    credential.email !== email ||
-    credential.provider !== provider
+    !sessionId ||
+    !userId ||
+    !email ||
+    !provider ||
+    typeof expiresAt !== "number" ||
+    !accessToken ||
+    !refreshToken
   ) {
     throw redirect("/login");
   }
@@ -63,8 +65,8 @@ export async function requireSession(request: Request): Promise<SessionData> {
     userId,
     email,
     provider,
-    accessToken: credential.accessToken,
-    refreshToken: credential.refreshToken,
+    accessToken,
+    refreshToken,
     expiresAt,
   };
 }
