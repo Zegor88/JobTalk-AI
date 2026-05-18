@@ -5,6 +5,12 @@ import type { Email, Thread } from "~/models/db.client";
 export type SyncPayload = { emails: Email[]; threads: Thread[] };
 export type GoogleSyncSession = OAuthCredential & { sessionId: string; provider: "google" };
 
+interface GmailPart {
+  mimeType?: string;
+  body?: { data?: string; size?: number };
+  parts?: GmailPart[];
+}
+
 export interface GmailMessage {
   id: string;
   threadId: string;
@@ -13,6 +19,9 @@ export interface GmailMessage {
   labelIds?: string[];
   payload?: {
     headers?: Array<{ name: string; value: string }>;
+    mimeType?: string;
+    body?: { data?: string; size?: number };
+    parts?: GmailPart[];
   };
 }
 
@@ -23,6 +32,8 @@ export interface MicrosoftMessage {
   bodyPreview: string;
   receivedDateTime: string;
   isRead: boolean;
+  from?: { emailAddress?: { name?: string; address?: string } };
+  body?: { contentType?: string; content?: string };
 }
 
 // Factory avoids module-level instantiation — same pattern as oauth.server.ts
@@ -49,6 +60,47 @@ function getGoogleClient(session: GoogleSyncSession): OAuth2Client {
     });
   });
   return client;
+}
+
+/** Recursively search MIME parts for the first text/plain body and decode it. */
+function extractGmailBody(part: GmailPart | undefined): string {
+  if (!part) return "";
+  if (part.mimeType === "text/plain" && part.body?.data) {
+    return Buffer.from(part.body.data, "base64url").toString("utf-8");
+  }
+  if (part.parts) {
+    for (const sub of part.parts) {
+      const text = extractGmailBody(sub);
+      if (text) return text;
+    }
+  }
+  return "";
+}
+
+/** Decode HTML entities in plain text (e.g. Gmail snippets contain &amp; &#39; etc.) */
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
+/** Strip HTML tags and decode common entities for plain-text display. */
+function stripHtml(html: string): string {
+  return decodeEntities(
+    html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
 }
 
 function parseGmailDate(dateHeader: string, internalDate?: string): string {
@@ -81,14 +133,18 @@ export function normalizeGmailMessage(raw: GmailMessage): Email {
   const subject = getHeader("Subject") || "(no subject)";
   const date = parseGmailDate(getHeader("Date"), raw.internalDate);
   const isRead = !(raw.labelIds ?? []).includes("UNREAD");
+  const from = getHeader("From");
+  const body = extractGmailBody(raw.payload as GmailPart | undefined) || undefined;
 
   return {
     id: raw.id,
     threadId: raw.threadId,
     subject,
-    snippet: raw.snippet ?? "",
+    snippet: decodeEntities(raw.snippet ?? ""),
+    body,
     date,
     isRead,
+    from: from || undefined,
     priorityScore: null,
     archived: false,
     deleted: false,
@@ -98,13 +154,26 @@ export function normalizeGmailMessage(raw: GmailMessage): Email {
 
 export function normalizeMicrosoftMessage(raw: MicrosoftMessage): Email {
   if (!hasRequiredMicrosoftFields(raw)) throw new Error("Invalid Microsoft message");
+  const senderName = raw.from?.emailAddress?.name;
+  const senderAddress = raw.from?.emailAddress?.address;
+  const from = senderName
+    ? senderAddress ? `${senderName} <${senderAddress}>` : senderName
+    : senderAddress;
+
+  const rawBody = raw.body?.content ?? "";
+  const body = rawBody
+    ? raw.body?.contentType === "html" ? stripHtml(rawBody) : rawBody.trim()
+    : undefined;
+
   return {
     id: raw.id,
     threadId: raw.conversationId,
     subject: raw.subject || "(no subject)",
     snippet: raw.bodyPreview ?? "",
+    body,
     date: raw.receivedDateTime,
     isRead: raw.isRead,
+    from: from || undefined,
     priorityScore: null,
     archived: false,
     deleted: false,
@@ -140,7 +209,7 @@ export async function fetchGmailEmails(session: GoogleSyncSession): Promise<Sync
     messageRefs.map(({ id }) =>
       client
         .fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`
         )
         .then((r) => r.data as GmailMessage)
     )
@@ -155,7 +224,7 @@ export async function fetchMicrosoftEmails(accessToken: string): Promise<SyncPay
   const url =
     "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages" +
     "?$top=20" +
-    "&$select=id,conversationId,subject,bodyPreview,receivedDateTime,isRead" +
+    "&$select=id,conversationId,subject,bodyPreview,body,receivedDateTime,isRead,from" +
     "&$orderby=receivedDateTime desc";
 
   const res = await fetch(url, {

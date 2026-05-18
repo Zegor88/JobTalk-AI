@@ -160,3 +160,21 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* One-time swipe hint: briefly reveals archive action to teach gesture */
+@keyframes swipeHintPeek {
+  0%   { transform: translateX(0); }
+  30%  { transform: translateX(-56px); }
+  70%  { transform: translateX(-56px); }
+  100% { transform: translateX(0); }
+}
+
+.item--hint {
+  animation: swipeHintPeek 900ms ease-in-out 800ms 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item--hint {
+    animation: none;
+  }
+}

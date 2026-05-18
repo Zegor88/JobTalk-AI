@@ -3,7 +3,7 @@
   border-radius: 8px;
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-4);
-  background-color: var(--color-surface);
+  background-color: color-mix(in srgb, var(--color-ai-accent) 8%, var(--color-surface));
 }
 
 .header {

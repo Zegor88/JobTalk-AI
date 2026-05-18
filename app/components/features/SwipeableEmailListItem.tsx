@@ -11,10 +11,17 @@ interface Props {
   onDelete: (id: string) => void;
   onClick: () => void;
   threadCount?: number;
+  showHint?: boolean;
 }
 
-function getInitial(subject: string): string {
-  return subject.charAt(0).toUpperCase();
+function getDisplayName(from?: string): string {
+  if (!from) return "?";
+  const match = from.match(/^(.+?)\s*<.+>$/);
+  return match ? match[1].trim() : from;
+}
+
+function getInitial(from?: string): string {
+  return getDisplayName(from).charAt(0).toUpperCase();
 }
 
 function formatDate(isoDate: string): string {
@@ -34,7 +41,7 @@ function formatDate(isoDate: string): string {
   }
 }
 
-export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick, threadCount }: Props) {
+export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick, threadCount, showHint }: Props) {
   const startXRef = useRef(0);
   const isDraggingRef = useRef(false);
   const isPointerDownRef = useRef(false);
@@ -123,7 +130,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick, th
 
       {/* Swipeable content */}
       <div
-        className={styles.item}
+        className={`${styles.item}${showHint ? ` ${styles["item--hint"]}` : ""}`}
         data-starred={String(email.starred)}
         style={{
           transform: `translateX(${translateX}px)`,
@@ -138,7 +145,7 @@ export function SwipeableEmailListItem({ email, onArchive, onDelete, onClick, th
       >
         {/* Sender initial avatar */}
         <div className={styles.avatar} aria-hidden="true">
-          {getInitial(email.subject)}
+          {getInitial(email.from)}
         </div>
 
         {/* Email content */}

@@ -9,6 +9,7 @@ export interface Email {
   subject: string;
   snippet: string;
   body?: string;
+  from?: string;
   date: string;          // ISO 8601
   isRead: boolean;
   priorityScore: "high" | "low" | null;
@@ -51,6 +52,15 @@ class JobTalkDB extends Dexie {
     }).upgrade(tx => {
       return tx.table("emails").toCollection().modify((email: Email) => {
         if (email.starred === undefined) email.starred = false;
+      });
+    });
+    // v4: adds from field (sender display name/email)
+    this.version(4).stores({
+      emails: "id, threadId, subject, snippet, date, isRead, priorityScore, archived, deleted, starred",
+      threads: "id, subject, lastMessageDate",
+    }).upgrade(tx => {
+      return tx.table("emails").toCollection().modify((email: Email) => {
+        if (email.from === undefined) email.from = "";
       });
     });
   }

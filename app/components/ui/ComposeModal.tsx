@@ -9,29 +9,42 @@ interface Props {
 }
 
 export function ComposeModal({ isOpen, onClose }: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
     if (isOpen) {
       setIsClosing(false);
+      dialog.showModal();
       setTimeout(() => toRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
   function handleClose() {
     setIsClosing(true);
-    setTimeout(onClose, 250);
+    setTimeout(() => {
+      dialogRef.current?.close();
+      onClose();
+    }, 250);
+  }
+
+  // Native dialog fires 'cancel' on Escape — hook into it for animated close
+  function handleCancel(e: React.SyntheticEvent) {
+    e.preventDefault();
+    handleClose();
   }
 
   if (!isOpen) return null;
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className={`${styles.overlay} ${isClosing ? styles.closing : ""}`}
-      role="dialog"
       aria-label="Compose new email"
-      aria-modal="true"
+      onCancel={handleCancel}
     >
       <header className={styles.header}>
         <h2 className={styles.title}>New Message</h2>
@@ -83,6 +96,6 @@ export function ComposeModal({ isOpen, onClose }: Props) {
           Send
         </button>
       </footer>
-    </div>
+    </dialog>
   );
 }

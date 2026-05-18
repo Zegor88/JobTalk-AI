@@ -4,9 +4,10 @@ import { Icon } from "~/components/ui/Icon";
 import styles from "./BottomNav.module.css";
 
 const TABS = [
-  { to: "/",        label: "Inbox",    icon: "inbox"    },
-  { to: "/search",  label: "Search",   icon: "search"   },
-  { to: "/settings",label: "Settings", icon: "settings" },
+  { to: "/",         label: "Inbox",   icon: "inbox"       },
+  { to: "/search",   label: "Search",  icon: "search"      },
+  { to: "/archive",  label: "Archive", icon: "archive-box" },
+  { to: "/settings", label: "Settings",icon: "settings"    },
 ] as const;
 
 export function BottomNav() {

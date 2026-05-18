@@ -31,8 +31,14 @@ interface DraftResult {
 
 const SMART_REPLY_CHIPS = ["Yes, schedule it", "No, not interested", "I'll follow up"];
 
-function getInitial(str: string): string {
-  return str.charAt(0).toUpperCase();
+function getDisplayName(from?: string): string {
+  if (!from) return "?";
+  const match = from.match(/^(.+?)\s*<.+>$/);
+  return match ? match[1].trim() : from;
+}
+
+function getInitial(from?: string): string {
+  return getDisplayName(from).charAt(0).toUpperCase();
 }
 
 function formatDate(isoDate: string): string {
@@ -227,6 +233,29 @@ export default function ThreadView() {
           <p className={styles.draftError}>{draftError}</p>
         )}
 
+        {!emails ? (
+          <p className={styles.loading}>Loading…</p>
+        ) : emails.length === 0 ? (
+          <p className={styles.empty}>No messages found.</p>
+        ) : (
+          emails.map((email) => (
+            <div key={email.id} className={styles.messageCard}>
+              <div className={styles.messageHeader}>
+                <div className={styles.senderAvatar} aria-hidden="true">
+                  {getInitial(email.from)}
+                </div>
+                <div className={styles.senderInfo}>
+                  <p className={styles.senderName}>{getDisplayName(email.from)}</p>
+                  <p className={styles.messageDate}>{formatDate(email.date)}</p>
+                </div>
+              </div>
+              <p className={styles.messageBody}>
+                {email.body ?? email.snippet}
+              </p>
+            </div>
+          ))
+        )}
+
         {emails && emails.length > 0 && (
           <div className={styles.replyRow}>
             <button
@@ -239,29 +268,6 @@ export default function ThreadView() {
               Reply
             </button>
           </div>
-        )}
-
-        {!emails ? (
-          <p className={styles.loading}>Loading…</p>
-        ) : emails.length === 0 ? (
-          <p className={styles.empty}>No messages found.</p>
-        ) : (
-          emails.map((email) => (
-            <div key={email.id} className={styles.messageCard}>
-              <div className={styles.messageHeader}>
-                <div className={styles.senderAvatar} aria-hidden="true">
-                  {getInitial(email.subject)}
-                </div>
-                <div className={styles.senderInfo}>
-                  <p className={styles.senderName}>{email.subject}</p>
-                  <p className={styles.messageDate}>{formatDate(email.date)}</p>
-                </div>
-              </div>
-              <p className={styles.messageBody}>
-                {email.body ?? email.snippet}
-              </p>
-            </div>
-          ))
         )}
       </main>
 

@@ -1,5 +1,5 @@
 // app/routes/home.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/home";
 import { requireSession } from "~/services/session.server";
@@ -11,6 +11,11 @@ import { TopAppBar } from "~/components/ui/TopAppBar";
 import { SkeletonEmailItem } from "~/components/ui/SkeletonEmailItem";
 import { EmptyState } from "~/components/ui/EmptyState";
 import styles from "./home.module.css";
+
+const SWIPE_HINT_KEY = "jobtalk_swipe_hinted";
+// Increment when the sync payload schema changes (e.g. new fields added to Email)
+const SYNC_SCHEMA_VERSION = "5"; // bumped: email body now fetched from API
+const SYNC_SCHEMA_KEY = "jobtalk_sync_schema_v";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -28,10 +33,12 @@ export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
   const { userEmail } = (await serverLoader()) as { userEmail: string };
 
   const cachedUser = localStorage.getItem("jobtalk_user_email");
-  if (cachedUser !== userEmail) {
+  const syncSchema = localStorage.getItem(SYNC_SCHEMA_KEY);
+  if (cachedUser !== userEmail || syncSchema !== SYNC_SCHEMA_VERSION) {
     await db.emails.clear();
     await db.threads.clear();
     localStorage.setItem("jobtalk_user_email", userEmail);
+    localStorage.setItem(SYNC_SCHEMA_KEY, SYNC_SCHEMA_VERSION);
   }
 
   try {
@@ -110,8 +117,21 @@ function getUserInitial(email: string): string {
 export default function Home({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
 
   const userEmail = (loaderData as { userEmail?: string } | null)?.userEmail ?? "";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!localStorage.getItem(SWIPE_HINT_KEY)) {
+      setShowSwipeHint(true);
+      const t = setTimeout(() => {
+        localStorage.setItem(SWIPE_HINT_KEY, "1");
+        setShowSwipeHint(false);
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const emails = useLiveQuery(
     () =>
@@ -177,7 +197,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           />
         ) : (
           <ul className={styles.list}>
-            {emails.map((email) => (
+            {emails.map((email, index) => (
               <SwipeableEmailListItem
                 key={email.id}
                 email={email}
@@ -185,6 +205,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 onDelete={handleDelete}
                 onClick={() => navigate(`/thread/${email.threadId}`)}
                 threadCount={threadCounts?.[email.threadId] ?? 1}
+                showHint={showSwipeHint && index === 0}
               />
             ))}
           </ul>
